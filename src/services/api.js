@@ -1,0 +1,204 @@
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://inventory-management-xqt1.vercel.app';
+
+
+class ApiService {
+  async request(endpoint, options = {}) {
+    const url = `${API_BASE_URL}${endpoint}`;
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    };
+
+    try {
+      const response = await fetch(url, config);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Transaction endpoints
+  async getAllTransactions() {
+    return this.request('/items/transactions');
+  }
+
+  async getTransactionsByType(type) {
+    return this.request(`/items/transactions/${type}`);
+  }
+
+  async addTransaction(transactionData) {
+    return this.request('/items/transactions', {
+      method: 'POST',
+      body: JSON.stringify(transactionData),
+    });
+  }
+
+  async deleteTransaction(id) {
+    return this.request(`/items/transactions/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Inventory endpoints
+  async getAvailableInventory() {
+    return this.request('/items/inventory/available');
+  }
+  // Vendor endpoints
+  async getAllVendors() {
+    return this.request('/vendors');
+  }
+
+  async addVendor(name, phone, address, assignedWires = []) {
+    return this.request('/vendors', {
+      method: 'POST',
+      body: JSON.stringify({ name, phone, address, assignedWires }),
+    });
+  }
+
+  async deleteVendor(vendorId) {
+    return this.request(`/vendors/${vendorId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async assignWireToVendor(vendorId, wireName, payalType, pricePerKg) {
+    return this.request(`/vendors/${vendorId}/wires`, {
+      method: 'POST',
+      body: JSON.stringify({ wireName, payalType, pricePerKg }),
+    });
+  }
+
+  async removeWireFromVendor(vendorId, assignmentId) {
+    return this.request(`/vendors/${vendorId}/wires/${assignmentId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getAllItems() {
+    return this.request('/vendors/items');
+  }
+
+  async addItem(name) {
+    return this.request('/vendors/items', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    });
+  }
+
+  async deleteItem(name) {
+    return this.request(`/vendors/items/${encodeURIComponent(name)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getVendorPrices() {
+    return this.request('/vendors/prices');
+  }
+
+  async getItemPrice(vendor, item) {
+    return this.request(`/vendors/${encodeURIComponent(vendor)}/items/${encodeURIComponent(item)}/price`);
+  }
+
+  async getVendorSummary(vendor) {
+    return this.request(`/vendors/${encodeURIComponent(vendor)}/summary`);
+  }
+
+  async getVendorTransactions(vendor) {
+    return this.request(`/vendors/${encodeURIComponent(vendor)}/transactions`);
+  }
+
+  // Payal Price Chart endpoints
+  async getPayalPriceChart() {
+    return this.request('/payal-price-chart');
+  }
+
+  async getPayalPrice(wireThickness, payalType) {
+    return this.request(`/payal-price-chart/${encodeURIComponent(wireThickness)}/${encodeURIComponent(payalType)}`);
+  }
+
+  async updatePayalPrice(wireThickness, payalType, pricePerKg) {
+    return this.request(`/payal-price-chart/${encodeURIComponent(wireThickness)}/${encodeURIComponent(payalType)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ pricePerKg }),
+    });
+  }
+
+  async addPayalPrice(wireThickness, payalType, pricePerKg) {
+    return this.request('/payal-price-chart', {
+      method: 'POST',
+      body: JSON.stringify({ wireThickness, payalType, pricePerKg }),
+    });
+  }
+
+  async seedPayalPriceChart() {
+    return this.request('/payal-price-chart/seed', {
+      method: 'POST',
+    });
+  }
+
+  async deletePayalPrice(wireThickness, payalType) {
+    return this.request(`/payal-price-chart/${encodeURIComponent(wireThickness)}/${encodeURIComponent(payalType)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async deleteWireFromPriceChart(wireThickness) {
+    return this.request(`/payal-price-chart/wire/${encodeURIComponent(wireThickness)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Payment endpoints
+  async getAllPayments() {
+    return this.request('/payments');
+  }
+
+  async getVendorPayments(vendorName) {
+    return this.request(`/payments/vendor/${encodeURIComponent(vendorName)}`);
+  }
+
+  async getVendorWirePayments(vendorName, wireName) {
+    return this.request(`/payments/vendor/${encodeURIComponent(vendorName)}/wire/${encodeURIComponent(wireName)}`);
+  }
+
+  async addPayment(paymentData) {
+    return this.request('/payments', {
+      method: 'POST',
+      body: JSON.stringify(paymentData),
+    });
+  }
+
+  async updatePayment(paymentId, paymentData) {
+    return this.request(`/payments/${paymentId}`, {
+      method: 'PUT',
+      body: JSON.stringify(paymentData),
+    });
+  }
+
+  async deletePayment(paymentId) {
+    return this.request(`/payments/${paymentId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getPaymentStats() {
+    return this.request('/payments/stats');
+  }
+
+  // Health check
+  async healthCheck() {
+    return this.request('/health');
+  }
+}
+
+export default new ApiService();
