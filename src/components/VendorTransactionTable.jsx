@@ -553,7 +553,7 @@ const VendorTransactionTable = () => {
               // Determine background color - light red for pending Wire IDs (only when no wire filter)
               const getRowStyle = () => {
                 if (!wireFilter && trans.type === 'OUT' && trans.wireIdStatus === 'pending') {
-                  return { backgroundColor: '#f8d7da' }; // Light red background for pending
+                  return { color: '#dc3545', fontWeight: '500' }; // Light red text color for pending
                 }
                 return {}; // Default
               };
