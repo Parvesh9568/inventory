@@ -18,6 +18,11 @@ const DataManagement = ({ onDataUpdate }) => {
   const [newPayalName, setNewPayalName] = useState('');
   const [newPayalPrice, setNewPayalPrice] = useState('');
 
+  // Print function
+  const handlePrint = () => {
+    window.print();
+  };
+
   // Load wires and price chart from database
   useEffect(() => {
     loadWiresAndPrices();
@@ -143,7 +148,13 @@ const DataManagement = ({ onDataUpdate }) => {
   };
 
   const deletePayal = async (wireName, payalName) => {
-    if (window.confirm(`Delete ${payalName} payal from ${wireName}?`)) {
+    const confirmMessage = `⚠️ Are you sure you want to delete ${payalName} payal from ${wireName}?\n\n` +
+      `This action cannot be undone.\n\n` +
+      `Type "yes" (lowercase) to confirm:`;
+    
+    const userInput = prompt(confirmMessage);
+    
+    if (userInput === 'yes') {
       try {
         setLoading(true);
         await apiService.deletePayalPrice(wireName, payalName);
@@ -157,17 +168,23 @@ const DataManagement = ({ onDataUpdate }) => {
       } finally {
         setLoading(false);
       }
+    } else if (userInput !== null) {
+      setMessage('❌ Deletion cancelled. You must type "yes" exactly to confirm.');
     }
   };
 
   const deleteWire = async (wireName) => {
     const hasPayalPrices = priceChart[wireName] && Object.keys(priceChart[wireName]).length > 0;
     
-    const confirmMessage = hasPayalPrices 
-      ? `Delete entire wire "${wireName}" and all its payal prices?`
-      : `Delete wire "${wireName}"? (This wire has no payal prices yet)`;
+    const confirmMessage = `⚠️ Are you sure you want to delete wire "${wireName}"?\n\n` +
+      (hasPayalPrices 
+        ? `This will delete all payal prices for this wire.\n\n`
+        : `This wire has no payal prices yet.\n\n`) +
+      `Type "yes" (lowercase) to confirm:`;
     
-    if (window.confirm(confirmMessage)) {
+    const userInput = prompt(confirmMessage);
+    
+    if (userInput === 'yes') {
       try {
         setLoading(true);
         
@@ -198,11 +215,19 @@ const DataManagement = ({ onDataUpdate }) => {
       } finally {
         setLoading(false);
       }
+    } else if (userInput !== null) {
+      setMessage('❌ Deletion cancelled. You must type "yes" exactly to confirm.');
     }
   };
 
   const seedPriceChart = async () => {
-    if (window.confirm('This will reset all payal price chart data to default values. Continue?')) {
+    const confirmMessage = `⚠️ This will reset all payal price chart data to default values.\n\n` +
+      `This action cannot be undone.\n\n` +
+      `Type "yes" (lowercase) to confirm:`;
+    
+    const userInput = prompt(confirmMessage);
+    
+    if (userInput === 'yes') {
       try {
         setLoading(true);
         await apiService.seedPayalPriceChart();
@@ -218,11 +243,18 @@ const DataManagement = ({ onDataUpdate }) => {
       } finally {
         setLoading(false);
       }
+    } else if (userInput !== null) {
+      setMessage('❌ Reset cancelled. You must type "yes" exactly to confirm.');
     }
   };
 
   const cleanInvalidData = async () => {
-    if (window.confirm('This will clean up any invalid payal type data in the database. Continue?')) {
+    const confirmMessage = `⚠️ This will clean up any invalid payal type data in the database.\n\n` +
+      `Type "yes" (lowercase) to confirm:`;
+    
+    const userInput = prompt(confirmMessage);
+    
+    if (userInput === 'yes') {
       try {
         setLoading(true);
         // Note: This would require a new API endpoint to trigger the cleanup script
@@ -233,6 +265,8 @@ const DataManagement = ({ onDataUpdate }) => {
       } finally {
         setLoading(false);
       }
+    } else if (userInput !== null) {
+      setMessage('❌ Cleanup cancelled. You must type "yes" exactly to confirm.');
     }
   };
 
@@ -301,7 +335,34 @@ const DataManagement = ({ onDataUpdate }) => {
 
   return (
     <div className="panel data-management">
-      <h2 style={{color: '#341f97'}}>🗃️ Wire & Payal Management</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2 style={{color: '#341f97', margin: 0}}>🗃️ Wire & Payal Management</h2>
+        <button 
+          onClick={handlePrint}
+          style={{
+            padding: '10px 20px',
+            background: 'linear-gradient(135deg, #27ae60 0%, #229954 100%)',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '1rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.transform = 'translateY(-2px)';
+            e.target.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.15)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+          }}
+        >
+          🖨️ Print
+        </button>
+      </div>
       
       {message && (
         <div className={`message ${message.includes('❌') ? 'error' : message.includes('⚠️') ? 'warning' : 'success'}`}

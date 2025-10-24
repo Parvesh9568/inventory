@@ -125,7 +125,13 @@ const WireManagement = ({ onDataUpdate }) => {
   };
 
   const deletePayal = async (wireName, payalName) => {
-    if (window.confirm(`Delete ${payalName} payal from ${wireName}?`)) {
+    const confirmMessage = `⚠️ Are you sure you want to delete ${payalName} payal from ${wireName}?\n\n` +
+      `This action cannot be undone.\n\n` +
+      `Type "yes" (lowercase) to confirm:`;
+    
+    const userInput = prompt(confirmMessage);
+    
+    if (userInput === 'yes') {
       try {
         setLoading(true);
         await apiService.deletePayalPrice(wireName, payalName);
@@ -133,22 +139,32 @@ const WireManagement = ({ onDataUpdate }) => {
         setMessage({ text: `✅ ${payalName} payal deleted from ${wireName}`, type: 'success' });
         
         await loadWiresAndPrices();
+        if (onDataUpdate) onDataUpdate();
       } catch (error) {
         setMessage({ text: `❌ Error deleting payal: ${error.message}`, type: 'error' });
       } finally {
         setLoading(false);
       }
+    } else if (userInput !== null) {
+      setMessage({ 
+        text: '❌ Deletion cancelled. You must type "yes" exactly to confirm.', 
+        type: 'error' 
+      });
     }
   };
 
   const deleteWire = async (wireName) => {
     const hasPayalPrices = priceChart[wireName] && Object.keys(priceChart[wireName]).length > 0;
     
-    const confirmMessage = hasPayalPrices 
-      ? `Delete entire wire "${wireName}" and all its payal prices?`
-      : `Delete wire "${wireName}"? (This wire has no payal prices yet)`;
+    const confirmMessage = `⚠️ Are you sure you want to delete wire "${wireName}"?\n\n` +
+      (hasPayalPrices 
+        ? `This will delete all payal prices for this wire.\n\n`
+        : `This wire has no payal prices yet.\n\n`) +
+      `Type "yes" (lowercase) to confirm:`;
     
-    if (window.confirm(confirmMessage)) {
+    const userInput = prompt(confirmMessage);
+    
+    if (userInput === 'yes') {
       try {
         setLoading(true);
         
@@ -173,6 +189,11 @@ const WireManagement = ({ onDataUpdate }) => {
       } finally {
         setLoading(false);
       }
+    } else if (userInput !== null) {
+      setMessage({ 
+        text: '❌ Deletion cancelled. You must type "yes" exactly to confirm.', 
+        type: 'error' 
+      });
     }
   };
 

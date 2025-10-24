@@ -13,6 +13,14 @@ const OutPanel = ({
 }) => {
   const totalOut = outItems.reduce((sum, item) => sum + item.total, 0);
 
+  // Get selected vendor object to access assigned wires
+  const selectedVendorObj = vendors.find(v => v.name === outForm.vendor);
+  
+  // Get available wires for selected vendor - only show wires assigned to this vendor
+  const availableWiresForVendor = outForm.vendor && selectedVendorObj?.assignedWires
+    ? [...new Set(selectedVendorObj.assignedWires.map(wire => wire.wireName))]
+    : [];
+
   // Prefill vendor/item from sessionStorage if present
   useEffect(() => {
     const prefillVendor = sessionStorage.getItem('prefillOutVendor');
@@ -76,11 +84,19 @@ const OutPanel = ({
         <select 
           value={outForm.item} 
           onChange={(e) => handleFormChange('out', 'item', e.target.value)}
+          disabled={!outForm.vendor}
         >
-          <option value="">Select Wire</option>
-          {items.map(item => (
+          <option value="">
+            {!outForm.vendor ? 'Select Vendor First' : 'Select Wire'}
+          </option>
+          {availableWiresForVendor.map(item => (
             <option key={item} value={item}>{item}</option>
           ))}
+          {availableWiresForVendor.length === 0 && outForm.vendor && (
+            <option value="" disabled>
+              No wires assigned to this vendor
+            </option>
+          )}
         </select>
 
         <input 

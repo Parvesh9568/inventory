@@ -10,7 +10,9 @@ import VendorManagement from './components/VendorManagement';
 import WireManagement from './components/WireManagement';
 import SearchVendorSection from './SearchVendorSection';
 import Payment from './components/Payment';
+import VendorTransactionTable from './components/VendorTransactionTable';
 import apiService from './services/api';
+import { confirmDelete } from './utils/confirmDelete';
 
 function App() {
   // State for loading and error
@@ -78,14 +80,26 @@ function App() {
     if (type === 'in') {
       const newForm = { ...inForm, [field]: value };
       
-      // Auto-calculate price for Moorni Payal when wire thickness, payal type, or weight changes
-      if (field === 'item' || field === 'payalType' || field === 'weight') {
+      // Auto-calculate price using vendor-specific pricing when wire, payal type, or weight changes
+      if (field === 'item' || field === 'payalType' || field === 'weight' || field === 'vendor') {
+        const vendor = field === 'vendor' ? value : newForm.vendor;
         const wireThickness = field === 'item' ? value : newForm.item;
         const payalType = field === 'payalType' ? value : newForm.payalType;
         const weight = field === 'weight' ? value : newForm.weight;
         
-        const calculatedPrice = calculatePayalPrice(wireThickness, payalType, weight);
-        newForm.price = calculatedPrice;
+        // Get vendor-specific price
+        if (vendor && wireThickness && payalType && weight) {
+          const selectedVendor = vendors.find(v => v.name === vendor);
+          if (selectedVendor?.assignedWires) {
+            const wireAssignment = selectedVendor.assignedWires.find(
+              w => w.wireName === wireThickness && w.payalType === payalType
+            );
+            if (wireAssignment && wireAssignment.pricePerKg) {
+              const calculatedPrice = (wireAssignment.pricePerKg * parseFloat(weight)).toFixed(2);
+              newForm.price = calculatedPrice;
+            }
+          }
+        }
       }
       
       setInForm(newForm);
@@ -199,12 +213,8 @@ function App() {
         }
       }
 
-      // Client-side inventory check before calling backend
-      const avail = checkItemAvailability(vendor, item, parseFloat(weight));
-      if (!avail.available) {
-        alert(avail.message);
-        return;
-      }
+      // Note: Inventory check removed to allow direct IN entries
+      // The backend will handle validation if needed
 
       try {
         // Send to API with Moorni Payal data
@@ -319,6 +329,14 @@ function App() {
       return;
     }
 
+    // Show confirmation popup requiring 'yes' input
+    const itemDescription = `${type.toUpperCase()} - ${item.vendor} - ${item.item} - ${item.qty} kg`;
+    const confirmed = confirmDelete(itemDescription, 'transaction');
+    
+    if (!confirmed) {
+      return;
+    }
+
     try {
       await apiService.deleteTransaction(item.id);
 
@@ -411,7 +429,8 @@ function App() {
         
         <div className="main-content">
           <header className="main-header">
-          <button 
+            <div className="header-left">
+              <button 
                 className="hamburger-btn-header"
                 onClick={() => {
                   const sidebar = document.querySelector('.sidebar');
@@ -427,24 +446,7 @@ function App() {
                 <span className="hamburger-line-header"></span>
                 <span className="hamburger-line-header"></span>
               </button>
-            <div className="header-left">
-              {/* <button 
-                className="hamburger-btn-header"
-                onClick={() => {
-                  const sidebar = document.querySelector('.sidebar');
-                  const mainContent = document.querySelector('.main-content');
-                  if (sidebar && mainContent) {
-                    sidebar.classList.toggle('sidebar-open');
-                    mainContent.classList.toggle('sidebar-open');
-                  }
-                }}
-                aria-label="Toggle Menu"
-              >
-                <span className="hamburger-line-header"></span>
-                <span className="hamburger-line-header"></span>
-                <span className="hamburger-line-header"></span>
-              </button> */}
-              <h1 >💼 Inventory Management Panel</h1>
+              <h1>💼 Inventory Management Panel</h1>
             </div>
           </header>
           
@@ -505,6 +507,10 @@ function App() {
               <Route 
                 path="/payment" 
                 element={<Payment />} 
+              />
+              <Route 
+                path="/vendor-transactions" 
+                element={<VendorTransactionTable />} 
               />
             </Routes>
           </div>

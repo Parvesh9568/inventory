@@ -15,6 +15,11 @@ const Payment = () => {
     notes: ''
   });
 
+  // Print function
+  const handlePrint = () => {
+    window.print();
+  };
+
   // Screenshot function
   const takeScreenshot = async () => {
     try {
@@ -817,7 +822,41 @@ const Payment = () => {
         </div>
       )}
 
-      {/* Fixed Screenshot Button */}
+      {/* Fixed Action Buttons */}
+      <button 
+        onClick={handlePrint}
+        className="print-btn-fixed"
+        title="Print Table"
+        style={{
+          position: 'fixed',
+          bottom: '30px',
+          right: '110px',
+          width: '60px',
+          height: '60px',
+          borderRadius: '50%',
+          border: 'none',
+          background: 'linear-gradient(135deg, #27ae60 0%, #229954 100%)',
+          color: 'white',
+          fontSize: '24px',
+          cursor: 'pointer',
+          boxShadow: '0 4px 15px rgba(39, 174, 96, 0.4)',
+          zIndex: 1000,
+          transition: 'all 0.3s ease',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.transform = 'scale(1.1)';
+          e.target.style.boxShadow = '0 6px 20px rgba(39, 174, 96, 0.6)';
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.transform = 'scale(1)';
+          e.target.style.boxShadow = '0 4px 15px rgba(39, 174, 96, 0.4)';
+        }}
+      >
+        🖨️
+      </button>
       <button 
         onClick={takeScreenshot}
         className="screenshot-btn"

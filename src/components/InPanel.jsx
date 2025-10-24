@@ -106,21 +106,15 @@ const InPanel = ({
         </button>
       </div>
       
-      {availableInventory.length === 0 && (
-        <div className="inventory-warning">
-          <p>⚠️ No items available for import. Please export items first in the OUT panel.</p>
-        </div>
-      )}
       
       <div className="form-section">
         <select 
           value={inForm.vendor} 
           onChange={(e) => handleFormChange('in', 'vendor', e.target.value)}
-          disabled={availableInventory.length === 0}
         >
           <option value="">Select Vendor</option>
-          {availableVendors.map(vendor => (
-            <option key={vendor} value={vendor}>{vendor}</option>
+          {vendors.filter(v => v.assignedWires && v.assignedWires.length > 0).map(vendor => (
+            <option key={vendor.name || vendor._id} value={vendor.name}>{vendor.name}</option>
           ))}
         </select>
 
@@ -189,31 +183,8 @@ const InPanel = ({
           onChange={(e) => handleFormChange('in', 'price', e.target.value)}
           placeholder={vendorSpecificPrice > 0 ? `Auto-calculated: ₹${(vendorSpecificPrice * (inForm.weight || 0)).toFixed(2)}` : "Enter total price"}
           step="0.01"
-          disabled={!inForm.vendor || !inForm.item}
+          min="0"
         />
-        
-        {/* Auto-calculate button for vendor-specific pricing */}
-        {vendorSpecificPrice > 0 && inForm.weight && (
-          <button 
-            type="button"
-            onClick={() => {
-              const calculatedPrice = (vendorSpecificPrice * parseFloat(inForm.weight)).toFixed(2);
-              handleFormChange('in', 'price', calculatedPrice);
-            }}
-            style={{
-              padding: '8px 12px',
-              fontSize: '12px',
-              backgroundColor: '#10ac84',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              marginLeft: '8px'
-            }}
-          >
-            💰 Auto-Calculate (₹{vendorSpecificPrice}/kg)
-          </button>
-        )}
         
         {/* Debug message when no price is found */}
         {/* {inForm.vendor && inForm.item && inForm.payalType && vendorSpecificPrice === 0 && (
@@ -240,7 +211,7 @@ const InPanel = ({
               await onDataUpdate();
             }
           }}
-          disabled={availableInventory.length === 0 || !canAddInItem}
+          disabled={!canAddInItem}
         >
           ➕ Add
         </button>
@@ -317,78 +288,24 @@ const InPanel = ({
         )}
       </div>
 
-      {/* Vendor-Specific Price Calculator Display */}
-      {inForm.item && inForm.payalType && inForm.weight && inForm.price && (
-        <div className="payal-calculator">
-          <h4>💎 {inForm.vendor} - {inForm.payalType} Payal Price Calculator</h4>
-          <div className="calculation-display">
-            <div className="calc-info">
-              <span className="calc-label">Vendor:</span>
-              <span className="calc-value">{inForm.vendor}</span>
-            </div>
-            <div className="calc-info">
-              <span className="calc-label">Wire Thickness:</span>
-              <span className="calc-value">{inForm.item}</span>
-            </div>
-            <div className="calc-info">
-              <span className="calc-label">Payal Type:</span>
-              <span className="calc-value">{inForm.payalType}</span>
-            </div>
-            <div className="calc-info">
-              <span className="calc-label">Weight:</span>
-              <span className="calc-value">{inForm.weight} kg</span>
-            </div>
-            {vendorSpecificPrice > 0 && (
-              <div className="calc-info">
-                <span className="calc-label">Vendor-Assigned Price:</span>
-                <span className="calc-value">₹{vendorSpecificPrice} per kg</span>
-              </div>
-            )}
-            <div className="calc-info">
-              <span className="calc-label">Calculated Total:</span>
-              <span className="calc-value">₹{(vendorSpecificPrice * parseFloat(inForm.weight || 0)).toFixed(2)}</span>
-            </div>
-            <div className="calc-info total">
-              <span className="calc-label"><strong>Vendor Payable:</strong></span>
-              <span className="calc-value total"><strong>₹{inForm.price}</strong></span>
-            </div>
-            {parseFloat(inForm.price) !== (vendorSpecificPrice * parseFloat(inForm.weight || 0)) && (
-              <div className="calc-info" style={{color: '#e67e22'}}>
-                <span className="calc-label">⚠️ Custom Price:</span>
-                <span className="calc-value">Different from calculated price</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
-      {/* Available Inventory Display */}
-      {inForm.vendor && inForm.item && (
+      {/* Available Inventory Display - Optional Info */}
+      {inForm.vendor && inForm.item && availableInventory.length > 0 && (
         <div className="inventory-status">
           {(() => {
             const availableItem = availableInventory.find(
               item => item.vendor === inForm.vendor && item.item === inForm.item
             );
             if (!availableItem) {
-              // Add a button to jump to OUT panel with vendor/item pre-filled
-              const goToOutPanel = () => {
-                // Store prefill info in sessionStorage (or use a global state/store if available)
-                sessionStorage.setItem('prefillOutVendor', inForm.vendor);
-                sessionStorage.setItem('prefillOutItem', inForm.item);
-                window.location.href = '/out';
-              };
               return (
-                <div className="available-qty" style={{color: '#c0392b'}}>
-                  <div>❌ Item "{inForm.item}" from "{inForm.vendor}" is not available for import. Please export it first.</div>
-                  <button style={{marginTop: '8px'}} onClick={goToOutPanel}>
-                    Go to OUT panel to export
-                  </button>
+                <div className="available-qty" style={{color: '#e67e22', backgroundColor: '#fff3e0', padding: '10px', borderRadius: '6px'}}>
+                  <div>📊 No OUT record found for "{inForm.item}" from "{inForm.vendor}". You can still add IN entry.</div>
                 </div>
               );
             }
             const availableWeight = availableItem ? (availableItem.totalOut - availableItem.totalIn) : 0;
             return (
-              <p className="available-qty">
+              <p className="available-qty" style={{backgroundColor: '#d4edda', padding: '10px', borderRadius: '6px'}}>
                 📦 Available for import: <strong>{availableWeight} kg</strong> of {inForm.item} from {inForm.vendor}
               </p>
             );

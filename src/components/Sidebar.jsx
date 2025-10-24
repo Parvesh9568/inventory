@@ -82,18 +82,19 @@ const Sidebar = () => {
       label: 'Wire Management',
       description: 'Manage Wire & Payal'
     },
+    // {
+    //   path: '/search',
+    //   icon: '🔍',
+    //   label: 'Vender Profile',
+    //   description: 'Find & Download'
+    // },
     {
-      path: '/search',
-      icon: '🔍',
-      label: 'Vender Profile',
-      description: 'Find & Download'
+      path: '/vendor-transactions',
+      icon: '📊',
+      label: 'Vendor Transactions',
+      description: 'View Transaction Records'
     },
-    {
-      path: '/payment',
-      icon: '💳',
-      label: 'Payment',
-      description: 'Payal Design Payments'
-    }
+   
   ];
 
   return (
@@ -112,15 +113,14 @@ const Sidebar = () => {
         <div className="sidebar-header">
           <h3>💼 Management</h3>
           <p>IN/OUT Panel</p>
-          {window.innerWidth < 1025 && (
-            <button 
-              className="sidebar-close-btn"
-              onClick={closeSidebar}
-              aria-label="Close Menu"
-            >
-              ✕
-            </button>
-          )}
+          <button 
+            className="sidebar-close-btn"
+            onClick={toggleSidebar}
+            aria-label="Close Menu"
+            title="Close Sidebar"
+          >
+            ✕
+          </button>
         </div>
         
         <nav className="sidebar-nav">

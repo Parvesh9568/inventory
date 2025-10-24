@@ -1,5 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://inventory-management-xqt1.vercel.app';
-
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://inventory-management-xqt1.vercel.app' ;
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://inventory-management-xqt1.vercel.app' || 'http://localhost:4003;
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL
 
 class ApiService {
   async request(endpoint, options = {}) {
@@ -193,6 +194,95 @@ class ApiService {
 
   async getPaymentStats() {
     return this.request('/payments/stats');
+  }
+
+  // Vendor Transaction Records endpoints
+  async getAllVendorTransactionRecords() {
+    return this.request('/vendor-transaction-records');
+  }
+
+  async getVendorTransactionRecordsByVendor(vendorName) {
+    return this.request(`/vendor-transaction-records/vendor/${encodeURIComponent(vendorName)}`);
+  }
+
+  async createOrUpdateVendorTransactionRecord(recordData) {
+    return this.request('/vendor-transaction-records', {
+      method: 'POST',
+      body: JSON.stringify(recordData),
+    });
+  }
+
+  async uploadPdfToRecord(recordId, file) {
+    const formData = new FormData();
+    formData.append('pdf', file);
+
+    return fetch(`${API_BASE_URL}/vendor-transaction-records/${recordId}/upload-pdf`, {
+      method: 'POST',
+      body: formData,
+    }).then(res => {
+      if (!res.ok) throw new Error('Failed to upload PDF');
+      return res.json();
+    });
+  }
+
+  async uploadImageToRecord(recordId, file) {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    return fetch(`${API_BASE_URL}/vendor-transaction-records/${recordId}/upload-image`, {
+      method: 'POST',
+      body: formData,
+    }).then(res => {
+      if (!res.ok) throw new Error('Failed to upload image');
+      return res.json();
+    });
+  }
+
+  async deleteVendorTransactionRecord(recordId) {
+    return this.request(`/vendor-transaction-records/${recordId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Print Status endpoints
+  async getAllPrintStatuses() {
+    return this.request('/print-status');
+  }
+
+  async getVendorPrintStatuses(vendorName) {
+    return this.request(`/print-status/vendor/${encodeURIComponent(vendorName)}`);
+  }
+
+  async markPageAsPrinted(vendorName, pageNumber) {
+    return this.request('/print-status/mark-printed', {
+      method: 'POST',
+      body: JSON.stringify({ vendorName, pageNumber }),
+    });
+  }
+
+  async markPagesAsPrintedBatch(pages) {
+    return this.request('/print-status/mark-printed-batch', {
+      method: 'POST',
+      body: JSON.stringify({ pages }),
+    });
+  }
+
+  async unmarkPage(vendorName, pageNumber) {
+    return this.request(`/print-status/${encodeURIComponent(vendorName)}/${pageNumber}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async clearAllPrintStatuses() {
+    return this.request('/print-status/clear/all', {
+      method: 'DELETE',
+    });
+  }
+
+  async clearVendorPrintStatuses(vendorName) {
+    return this.request(`/print-status/clear/vendor/${encodeURIComponent(vendorName)}`, {
+      method: 'DELETE',
+    });
   }
 
   // Health check

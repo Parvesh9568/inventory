@@ -133,7 +133,13 @@ const VendorManagement = ({ onDataUpdate }) => {
   };
 
   const removeWireFromVendor = async (vendor, assignmentId) => {
-    if (window.confirm(`Remove this wire assignment from ${vendor.name}?`)) {
+    const confirmMessage = `⚠️ Are you sure you want to remove this wire assignment from ${vendor.name}?\n\n` +
+      `This action cannot be undone.\n\n` +
+      `Type "yes" (lowercase) to confirm:`;
+    
+    const userInput = prompt(confirmMessage);
+    
+    if (userInput === 'yes') {
       try {
         setLoading(true);
         await apiService.removeWireFromVendor(vendor._id, assignmentId);
@@ -146,6 +152,11 @@ const VendorManagement = ({ onDataUpdate }) => {
       } finally {
         setLoading(false);
       }
+    } else if (userInput !== null) {
+      setMessage({ 
+        text: '❌ Removal cancelled. You must type "yes" exactly to confirm.', 
+        type: 'error' 
+      });
     }
   };
 
@@ -155,11 +166,11 @@ const VendorManagement = ({ onDataUpdate }) => {
       `• Vendor information (${vendor.name}, ${vendor.phone || 'No phone'}, ${vendor.address || 'No address'})\n` +
       `• ${vendor.assignedWires?.length || 0} assigned wire configurations\n\n` +
       `Note: If this vendor has transactions, deletion will be blocked.\n\n` +
-      `Type "DELETE" to confirm:`;
+      `Type "yes" (lowercase) to confirm:`;
     
     const userInput = prompt(confirmMessage);
     
-    if (userInput === 'DELETE') {
+    if (userInput === 'yes') {
       try {
         setLoading(true);
         await apiService.deleteVendor(vendor._id);
@@ -183,7 +194,7 @@ const VendorManagement = ({ onDataUpdate }) => {
       }
     } else if (userInput !== null) {
       setMessage({ 
-        text: '❌ Deletion cancelled. You must type "DELETE" exactly to confirm.', 
+        text: '❌ Deletion cancelled. You must type "yes" exactly to confirm.', 
         type: 'error' 
       });
     }

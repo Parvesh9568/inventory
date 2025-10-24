@@ -1,0 +1,851 @@
+.vendor-transaction-container {
+  padding: 20px;
+  max-width: 100%;
+  margin: 0 auto;
+  background: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.vendor-transaction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.vendor-transaction-header h2 {
+  color: #2c3e50;
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.vendor-transaction-controls {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.vendor-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vendor-select-wrapper label {
+  font-weight: 600;
+  color: #34495e;
+  white-space: nowrap;
+}
+
+.vendor-select {
+  padding: 10px 15px;
+  border: 2px solid #3498db;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 200px;
+}
+
+.vendor-select:hover {
+  border-color: #2980b9;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
+}
+
+.vendor-select:focus {
+  outline: none;
+  border-color: #2980b9;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.filter-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.filter-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.filter-btn:active {
+  transform: translateY(0);
+}
+
+.print-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.print-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #229954 0%, #1e8449 100%);
+}
+
+.print-btn:active {
+  transform: translateY(0);
+}
+
+.clear-history-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.clear-history-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+}
+
+.clear-history-btn:active {
+  transform: translateY(0);
+}
+
+.screenshot-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.screenshot-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #2980b9 0%, #21618c 100%);
+}
+
+.screenshot-btn:active {
+  transform: translateY(0);
+}
+
+.wire-filter-panel {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.wire-filter-input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 15px;
+  transition: all 0.3s ease;
+}
+
+.wire-filter-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.wire-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.wire-chip {
+  padding: 8px 16px;
+  background: #f0f0f0;
+  border: 2px solid #e0e0e0;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.wire-chip:hover {
+  background: #e8e8e8;
+  border-color: #d0d0d0;
+}
+
+.wire-chip.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+}
+
+.vendor-transaction-table-wrapper {
+  overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.vendor-transaction-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px;
+}
+
+.vendor-transaction-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.vendor-transaction-table th {
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vendor-transaction-table tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+  transition: all 0.2s ease;
+}
+
+.vendor-transaction-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.vendor-transaction-table td {
+  padding: 12px 15px;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.vendor-transaction-table td.highlight-yellow {
+  background-color: #ffff00;
+  font-weight: 600;
+}
+
+.vendor-summary-row {
+  background: #fff3cd !important;
+  border-top: 3px solid #ffc107;
+  border-bottom: 3px solid #ffc107;
+  font-weight: 600;
+}
+
+.vendor-summary-row.complete {
+  background: #d4edda !important;
+  border-top: 3px solid #28a745;
+  border-bottom: 3px solid #28a745;
+}
+
+.vendor-name-cell {
+  color: #495057;
+  font-size: 1rem;
+}
+
+.file-upload-cell {
+  text-align: center;
+}
+
+.file-upload-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.file-upload-label {
+  padding: 8px 16px;
+  background: #3498db;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.file-upload-label:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.status-cell {
+  text-align: center;
+  font-weight: 600;
+}
+
+.status-done {
+  color: #28a745;
+  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status-pending {
+  color: #ffc107;
+  font-size: 0.9rem;
+}
+
+.print-button-cell {
+  text-align: center;
+}
+
+.print-btn-summary {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.print-btn-summary:hover {
+  background: linear-gradient(135deg, #229954 0%, #1e8449 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.print-btn-summary:active {
+  transform: translateY(0);
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 20px;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.pagination-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.pagination-btn:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pagination-info {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.vendor-transaction-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  font-size: 1.5rem;
+  color: #667eea;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+/* Mobile First - Extra Small Devices (< 480px) */
+@media (max-width: 480px) {
+  .vendor-transaction-container {
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .vendor-transaction-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+
+  .vendor-transaction-header h2 {
+    font-size: 1.3rem;
+    margin: 0;
+  }
+
+  .vendor-transaction-controls {
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .vendor-select-wrapper {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .vendor-select-wrapper label {
+    font-size: 14px;
+  }
+
+  .vendor-select {
+    width: 100%;
+    min-width: 100%;
+    padding: 12px;
+    font-size: 16px; /* Prevents iOS zoom */
+  }
+
+  .clear-history-btn,
+  .screenshot-btn,
+  .filter-btn,
+  .print-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  /* Table Wrapper */
+  .vendor-transaction-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 6px;
+  }
+
+  /* Table Mobile */
+  .vendor-transaction-table {
+    min-width: 800px; /* Allow horizontal scroll */
+    font-size: 11px;
+  }
+
+  .vendor-transaction-table th,
+  .vendor-transaction-table td {
+    padding: 8px 4px;
+    font-size: 10px;
+  }
+
+  .vendor-transaction-table th {
+    font-size: 10px;
+    padding: 10px 4px;
+    letter-spacing: 0.3px;
+  }
+
+  /* Summary Row Mobile */
+  .vendor-summary-row td {
+    font-size: 11px !important;
+    padding: 10px 6px !important;
+  }
+
+  .vendor-name-cell {
+    font-size: 12px !important;
+  }
+
+  .print-btn-summary {
+    padding: 6px 10px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .status-cell {
+    font-size: 11px;
+  }
+
+  .status-done,
+  .status-pending {
+    font-size: 11px;
+  }
+
+  /* Wire Summary Panel Mobile */
+  .wire-summary-panel {
+    min-width: 100% !important;
+    max-width: 100% !important;
+    margin-top: 15px;
+    padding: 12px;
+  }
+
+  .wire-summary-panel h3 {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .wire-summary-panel table {
+    font-size: 10px;
+  }
+
+  .wire-summary-panel th,
+  .wire-summary-panel td {
+    padding: 6px 2px !important;
+    font-size: 9px !important;
+  }
+
+  /* Pagination Mobile */
+  .pagination {
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .pagination-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .pagination-info {
+    font-size: 13px;
+    text-align: center;
+  }
+
+  /* File Upload Mobile */
+  .file-upload-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .file-upload-label {
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+    font-size: 12px;
+  }
+}
+
+/* Small Tablets and Large Phones (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .vendor-transaction-container {
+    padding: 15px;
+  }
+
+  .vendor-transaction-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .vendor-transaction-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .vendor-transaction-controls {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .vendor-select-wrapper {
+    flex: 1 1 calc(50% - 6px);
+    min-width: 200px;
+  }
+
+  .vendor-select {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 15px;
+  }
+
+  .clear-history-btn,
+  .filter-btn {
+    flex: 1 1 100%;
+    padding: 10px 18px;
+  }
+
+  /* Table Tablet */
+  .vendor-transaction-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .vendor-transaction-table {
+    min-width: 900px;
+    font-size: 12px;
+  }
+
+  .vendor-transaction-table th,
+  .vendor-transaction-table td {
+    padding: 10px 6px;
+    font-size: 11px;
+  }
+
+  .vendor-summary-row td {
+    font-size: 12px !important;
+  }
+
+  .print-btn-summary {
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+
+  /* Wire Summary Panel Tablet */
+  .wire-summary-panel {
+    min-width: 320px;
+    max-width: 380px;
+  }
+
+  .wire-summary-panel h3 {
+    font-size: 15px;
+  }
+
+  .wire-summary-panel table {
+    font-size: 11px;
+  }
+
+  /* Pagination Tablet */
+  .pagination {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .pagination-btn {
+    padding: 10px 18px;
+  }
+
+  .pagination-info {
+    flex: 1 1 100%;
+    text-align: center;
+    order: -1;
+  }
+}
+
+/* Tablets (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .vendor-transaction-container {
+    padding: 18px;
+  }
+
+  .vendor-transaction-header h2 {
+    font-size: 1.6rem;
+  }
+
+  .vendor-transaction-controls {
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .vendor-select-wrapper {
+    min-width: 180px;
+  }
+
+  .vendor-transaction-table {
+    font-size: 13px;
+  }
+
+  .vendor-transaction-table th,
+  .vendor-transaction-table td {
+    padding: 11px 8px;
+    font-size: 12px;
+  }
+
+  .wire-summary-panel {
+    min-width: 340px;
+    max-width: 400px;
+  }
+}
+
+/* Landscape Orientation */
+@media (max-width: 768px) and (orientation: landscape) {
+  .vendor-transaction-table {
+    font-size: 12px;
+  }
+
+  .vendor-transaction-table th,
+  .vendor-transaction-table td {
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+
+  .wire-summary-panel {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+}
+
+/* Touch-friendly enhancements */
+@media (max-width: 768px) {
+  /* Increase tap target sizes */
+  .vendor-select,
+  .clear-history-btn,
+  .print-btn-summary,
+  .pagination-btn {
+    min-height: 44px; /* Apple's recommended touch target size */
+  }
+
+  /* Smooth scrolling */
+  .vendor-transaction-table-wrapper {
+    scroll-behavior: smooth;
+  }
+
+  /* Better touch feedback */
+  .vendor-transaction-table tbody tr {
+    -webkit-tap-highlight-color: rgba(102, 126, 234, 0.1);
+  }
+}
+
+/* Print Styles */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 5mm;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  .vendor-transaction-container {
+    box-shadow: none;
+    background: white;
+    padding: 0;
+    max-width: 100%;
+  }
+
+  /* Hide controls and buttons when printing */
+  .vendor-transaction-controls,
+  .print-btn,
+  .filter-btn,
+  .clear-history-btn,
+  .screenshot-btn,
+  .wire-filter-panel,
+  .pagination,
+  .file-upload-buttons,
+  .file-upload-label,
+  .wire-summary-panel,
+  .print-btn-summary {
+    display: none !important;
+  }
+
+  .vendor-transaction-header {
+    margin-bottom: 5px;
+  }
+
+  .vendor-transaction-header h2 {
+    font-size: 12pt;
+    margin: 0;
+  }
+
+  .vendor-transaction-table-wrapper {
+    box-shadow: none;
+    overflow: visible;
+    max-width: 100%;
+  }
+
+  .vendor-transaction-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 5pt;
+    table-layout: fixed;
+  }
+
+  .vendor-transaction-table thead {
+    background: #667eea !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .vendor-transaction-table th {
+    padding: 2px 1px;
+    border: 0.5px solid #333;
+    font-size: 5pt;
+    word-wrap: break-word;
+    line-height: 1.1;
+  }
+
+  .vendor-transaction-table td {
+    padding: 1px 1px;
+    border: 0.5px solid #ddd;
+    font-size: 5pt;
+    word-wrap: break-word;
+    overflow: hidden;
+    line-height: 1.1;
+  }
+
+  .vendor-transaction-table td.highlight-yellow {
+    background-color: #ffff00 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .vendor-summary-row {
+    background: #fff3cd !important;
+    border-top: 1px solid #ffc107 !important;
+    border-bottom: 1px solid #ffc107 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .vendor-summary-row.complete {
+    background: #d4edda !important;
+    border-top: 1px solid #28a745 !important;
+    border-bottom: 1px solid #28a745 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Force table to fit on one page */
+  .vendor-transaction-table {
+    page-break-inside: avoid;
+  }
+
+  .vendor-transaction-table tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  .vendor-transaction-table thead {
+    display: table-header-group;
+  }
+
+  .vendor-transaction-table tfoot {
+    display: table-footer-group;
+  }
+
+  /* Scale down if needed */
+  html {
+    zoom: 0.9;
+  }
+}
