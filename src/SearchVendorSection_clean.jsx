@@ -17,7 +17,7 @@ const SearchVendorSection = ({ inItems, outItems }) => {
       const vendorsData = await apiService.getAllVendors();
       setVendors(vendorsData);
     } catch (error) {
-      console.error('Error loading vendors:', error);
+      // Error loading vendors
     }
   };
 

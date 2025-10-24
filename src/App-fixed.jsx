@@ -154,7 +154,6 @@ function App() {
   // Refresh transaction data function
   const refreshTransactionData = async () => {
     try {
-      console.log('🔄 Refreshing transaction data...');
       const [inTransactions, outTransactions] = await Promise.all([
         apiService.getTransactionsByType('IN'),
         apiService.getTransactionsByType('OUT')
@@ -162,9 +161,8 @@ function App() {
       
       setInItems(inTransactions);
       setOutItems(outTransactions);
-      console.log('✅ Transaction data refreshed');
     } catch (error) {
-      console.error('❌ Failed to refresh transaction data:', error);
+      // Failed to refresh transaction data
     }
   };
 
@@ -174,7 +172,6 @@ function App() {
     
     if (type === 'in') {
       const { vendor, item, payalType, weight, price } = form;
-      console.log('Form data:', { vendor, item, payalType, weight, price });
       
       // Validate required fields
       if (!vendor || !item || !payalType || !weight || weight <= 0 || !price || isNaN(price)) {
@@ -237,23 +234,17 @@ function App() {
           total: parseFloat(price),
           inDate: form.inDate // Include the IN date
         };
-        
-        console.log('Sending transaction data:', transactionData);
 
         const newTransaction = await apiService.addTransaction(transactionData);
-        console.log('New transaction:', newTransaction);
 
         // Update local state
         setInItems(prev => {
-          console.log('Previous inItems:', prev);
           const newItems = [...prev, newTransaction];
-          console.log('Updated inItems:', newItems);
           return newItems;
         });
         setInForm({ vendor: '', item: '', payalType: '', weight: '', price: '', inDate: new Date().toISOString().split('T')[0] });
 
         // Refresh data to update OutPanel inventory
-        console.log('🔄 Refreshing data after IN transaction...');
         await refreshTransactionData();
 
       } catch (error) {
@@ -290,7 +281,6 @@ function App() {
         setOutForm({ vendor: '', item: '', weight: '', outDate: new Date().toISOString().split('T')[0] });
 
         // Refresh data to update InPanel inventory
-        console.log('🔄 Refreshing data after OUT transaction to update InPanel inventory...');
         await refreshTransactionData();
 
       } catch (error) {
@@ -320,7 +310,6 @@ function App() {
       }
 
       // Refresh data to update inventory in both panels
-      console.log('🔄 Refreshing data after deletion...');
       await refreshTransactionData();
 
     } catch (error) {
@@ -353,10 +342,6 @@ function App() {
         apiService.getTransactionsByType('OUT')
       ]);
 
-      console.log('IN Transactions:', inTransactions);
-      console.log('OUT Transactions:', outTransactions);
-      console.log('Price Chart:', priceChartData);
-
       setVendors(vendorsData); // Store full vendor objects with assignedWires
       setItems(itemsData.map(i => i.name));
       setVendorPrices(pricesData);
@@ -365,7 +350,6 @@ function App() {
       setOutItems(outTransactions);
 
     } catch (err) {
-      console.error('Failed to load initial data:', err);
       setError(err.message);
     } finally {
       setLoading(false);

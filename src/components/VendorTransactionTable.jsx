@@ -23,10 +23,7 @@ const VendorTransactionTable = () => {
         // Update local state
         const pageKey = `${selectedVendor}-page-${currentPage}`;
         setPrintedPages(prev => new Set([...prev, pageKey]));
-        
-        console.log(`Page ${currentPage} marked as printed for ${selectedVendor}`);
       } catch (error) {
-        console.error('Error marking page as printed:', error);
         alert('Failed to save print status: ' + error.message);
         return; // Don't print if save failed
       }
@@ -76,7 +73,6 @@ const VendorTransactionTable = () => {
         alert('✅ Screenshot saved successfully!');
       });
     } catch (error) {
-      console.error('Error taking screenshot:', error);
       alert('❌ Failed to take screenshot. Please install html2canvas: npm install html2canvas');
     }
   };
@@ -89,7 +85,6 @@ const VendorTransactionTable = () => {
         setPrintedPages(new Set());
         alert('Print history cleared successfully!');
       } catch (error) {
-        console.error('Error clearing print history:', error);
         alert('Failed to clear print history: ' + error.message);
       }
     }
@@ -110,7 +105,7 @@ const VendorTransactionTable = () => {
       );
       setPrintedPages(printedSet);
     } catch (error) {
-      console.error('Error loading print statuses:', error);
+      // Error loading print statuses
     }
   };
 
@@ -129,7 +124,6 @@ const VendorTransactionTable = () => {
       const allTransactions = [...inTransactions, ...outTransactions];
       processTransactions(allTransactions);
     } catch (error) {
-      console.error('Error loading data:', error);
       alert('Failed to load data: ' + error.message);
     } finally {
       setLoading(false);
@@ -137,8 +131,6 @@ const VendorTransactionTable = () => {
   };
 
   const processTransactions = (allTransactions) => {
-    console.log('Raw transactions before processing:', allTransactions.slice(0, 5));
-    
     // Create individual rows for each transaction with Sr.No
     const processedTransactions = allTransactions.map((trans, index) => {
       // Use createdAt for sorting (actual creation time), but display inDate/outDate
@@ -175,15 +167,6 @@ const VendorTransactionTable = () => {
       // Sort by createdAt: oldest first (ascending)
       return dateA - dateB; // Simple chronological order
     });
-    
-    console.log('Sorted transactions (first 10):', processedTransactions.slice(0, 10).map(t => ({
-      createdAt: new Date(t.sortDate).toLocaleString('en-IN'),
-      displayDate: new Date(t.date).toLocaleString('en-IN'),
-      type: t.type,
-      vendor: t.vendor,
-      wire: t.wire,
-      qty: t.type === 'OUT' ? t.qtyOut : t.qtyIn
-    })));
 
     // Calculate cumulative balance and assign Wire IDs using FIFO
     const balanceTracker = {}; // vendor-wise balance
@@ -374,7 +357,6 @@ const VendorTransactionTable = () => {
       const fileTypeText = isPdf ? 'PDF' : isImage ? 'Image' : 'File';
       alert(`${fileTypeText} uploaded successfully!`);
     } catch (error) {
-      console.error('Error uploading file:', error);
       alert('Failed to upload file: ' + error.message);
     } finally {
       setUploadingFiles(prev => ({ ...prev, [key]: false }));
