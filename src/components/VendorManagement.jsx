@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiService from '../services/api';
 
@@ -20,6 +20,8 @@ const VendorManagement = ({ onDataUpdate }) => {
   const [customPrice, setCustomPrice] = useState('');
   const [allWires, setAllWires] = useState([]);
   const [priceChart, setPriceChart] = useState({});
+  const wireSelectRef = useRef(null);
+  const priceInputRef = useRef(null);
 
   useEffect(() => {
     loadVendors();
@@ -89,6 +91,12 @@ const VendorManagement = ({ onDataUpdate }) => {
     setSelectedWire('');
     setSelectedPayal('');
     setCustomPrice('');
+    // Auto-focus the wire select after modal opens
+    setTimeout(() => {
+      if (wireSelectRef.current) {
+        wireSelectRef.current.focus();
+      }
+    }, 100);
   };
 
   const cancelWireAssignment = () => {
@@ -129,6 +137,13 @@ const VendorManagement = ({ onDataUpdate }) => {
       setMessage({ text: `❌ Error assigning wire: ${error.message}`, type: 'error' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePriceKeyPress = (e) => {
+    if (e.key === 'Enter' && selectedWire && selectedPayal && customPrice && parseFloat(customPrice) > 0) {
+      e.preventDefault();
+      assignWireToVendor();
     }
   };
 
@@ -823,6 +838,7 @@ const VendorManagement = ({ onDataUpdate }) => {
                 Select Wire
               </label>
               <select
+                ref={wireSelectRef}
                 value={selectedWire}
                 onChange={(e) => {
                   setSelectedWire(e.target.value);
@@ -897,9 +913,11 @@ const VendorManagement = ({ onDataUpdate }) => {
                 Price (₹ per kg)
               </label>
               <input
+                ref={priceInputRef}
                 type="number"
                 value={customPrice}
                 onChange={(e) => setCustomPrice(e.target.value)}
+                onKeyPress={handlePriceKeyPress}
                 placeholder="Enter custom price"
                 min="0"
                 step="0.01"

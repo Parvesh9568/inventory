@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import apiService from '../services/api';
 
 const WireManagement = ({ onDataUpdate }) => {
@@ -14,6 +14,9 @@ const WireManagement = ({ onDataUpdate }) => {
   const [addingPayalFor, setAddingPayalFor] = useState(null);
   const [newPayalName, setNewPayalName] = useState('');
   const [newPayalPrice, setNewPayalPrice] = useState('');
+  const [editingPayal, setEditingPayal] = useState(null); // { wireName, payalType }
+  const [editPayalName, setEditPayalName] = useState('');
+  const payalInputRef = useRef(null);
 
   useEffect(() => {
     loadWiresAndPrices();
@@ -94,6 +97,12 @@ const WireManagement = ({ onDataUpdate }) => {
     setAddingPayalFor(wireName);
     setNewPayalName('');
     setNewPayalPrice('');
+    // Auto-focus the input after state update
+    setTimeout(() => {
+      if (payalInputRef.current) {
+        payalInputRef.current.focus();
+      }
+    }, 0);
   };
 
   const cancelAddPayal = () => {
@@ -119,6 +128,65 @@ const WireManagement = ({ onDataUpdate }) => {
       await loadWiresAndPrices();
     } catch (error) {
       setMessage({ text: `❌ Error adding payal type: ${error.message}`, type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePayalKeyPress = (e) => {
+    if (e.key === 'Enter' && newPayalName.trim()) {
+      e.preventDefault();
+      addPayalToWire();
+    }
+  };
+
+  const startEditingPayal = (wireName, payalType) => {
+    setEditingPayal({ wireName, payalType, oldPayalType: payalType });
+    setEditPayalName(payalType);
+  };
+
+  const cancelEditingPayal = () => {
+    setEditingPayal(null);
+    setEditPayalName('');
+  };
+
+  const savePayalEdit = async () => {
+    if (!editingPayal || !editPayalName.trim()) {
+      setMessage({ text: '⚠️ Please enter a valid payal name', type: 'error' });
+      return;
+    }
+
+    if (editPayalName.trim() === editingPayal.oldPayalType) {
+      setMessage({ text: '⚠️ Payal name is unchanged', type: 'error' });
+      cancelEditingPayal();
+      return;
+    }
+
+    // Check if new name already exists for this wire
+    if (priceChart[editingPayal.wireName] && priceChart[editingPayal.wireName][editPayalName.trim()]) {
+      setMessage({ text: `⚠️ Payal type "${editPayalName.trim()}" already exists for this wire`, type: 'error' });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const currentPrice = priceChart[editingPayal.wireName][editingPayal.oldPayalType];
+      
+      // Delete old payal and add new one with same price
+      await apiService.deletePayalPrice(editingPayal.wireName, editingPayal.oldPayalType);
+      await apiService.addPayalPrice(editingPayal.wireName, editPayalName.trim(), currentPrice);
+      
+      setMessage({ 
+        text: `✅ Payal renamed from "${editingPayal.oldPayalType}" to "${editPayalName.trim()}" for ${editingPayal.wireName}`, 
+        type: 'success' 
+      });
+      
+      setEditingPayal(null);
+      setEditPayalName('');
+      await loadWiresAndPrices();
+      if (onDataUpdate) onDataUpdate();
+    } catch (error) {
+      setMessage({ text: `❌ Failed to rename payal: ${error.message}`, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -416,9 +484,11 @@ const WireManagement = ({ onDataUpdate }) => {
                           Payal Name
                         </label>
                         <input
+                          ref={payalInputRef}
                           type="text"
                           value={newPayalName}
                           onChange={(e) => setNewPayalName(e.target.value)}
+                          onKeyPress={handlePayalKeyPress}
                           placeholder="e.g., Moorni, Silver, Golden"
                           style={{
                             width: '100%',
@@ -483,49 +553,136 @@ const WireManagement = ({ onDataUpdate }) => {
                   </thead>
                   <tbody>
                     {priceChart[wireName] && Object.keys(priceChart[wireName]).length > 0 ? (
-                      Object.keys(priceChart[wireName]).map(payalType => (
-                        <tr key={payalType} style={{ borderBottom: '1px solid #eee' }}>
-                          <td style={{ padding: '15px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <span style={{ fontSize: '18px' }}>
-                                {payalType === 'Moorni' ? '🔷' :
-                                 payalType === 'Silver' ? '⚪' :
-                                 payalType === 'Golden' ? '🟡' :
-                                 payalType === 'Diamond' ? '💎' : '💎'}
-                              </span>
-                              <strong style={{ fontSize: '16px', color: '#2c3e50' }}>
-                                {payalType}
-                              </strong>
-                              <span style={{ 
-                                fontSize: '12px', 
-                                color: '#666', 
-                                fontStyle: 'italic',
-                                marginLeft: '10px'
-                              }}>
-                                (Prices set per vendor)
-                              </span>
-                            </div>
-                          </td>
-                          <td style={{ padding: '10px', textAlign: 'center' }}>
-                            <button
-                              onClick={() => deletePayal(wireName, payalType)}
-                              style={{
-                                padding: '8px 15px',
-                                backgroundColor: '#ee5a6f',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                fontWeight: '600'
-                              }}
-                              disabled={loading}
-                            >
-                              🗑️ Remove Payal Type
-                            </button>
-                          </td>
-                        </tr>
-                      ))
+                      Object.keys(priceChart[wireName]).map(payalType => {
+                        const isEditing = editingPayal?.wireName === wireName && editingPayal?.payalType === payalType;
+                        const currentPrice = priceChart[wireName][payalType];
+                        
+                        return (
+                          <tr key={payalType} style={{ borderBottom: '1px solid #eee' }}>
+                            <td style={{ padding: '15px' }}>
+                              {isEditing ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <label style={{ fontSize: '14px', fontWeight: '600', color: '#2c3e50' }}>
+                                      Edit Payal Name:
+                                    </label>
+                                  </div>
+                                  <input
+                                    type="text"
+                                    value={editPayalName}
+                                    onChange={(e) => setEditPayalName(e.target.value)}
+                                    placeholder="Enter new payal name"
+                                    style={{
+                                      padding: '10px',
+                                      borderRadius: '4px',
+                                      border: '2px solid #3498db',
+                                      fontSize: '14px',
+                                      width: '100%'
+                                    }}
+                                    autoFocus
+                                  />
+                                  <p style={{ margin: 0, fontSize: '11px', color: '#666', fontStyle: 'italic' }}>
+                                    💡 Renaming will keep the same price. Old name: <strong>{payalType}</strong>
+                                  </p>
+                                </div>
+                              ) : (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <span style={{ fontSize: '18px' }}>
+                                    {payalType === 'Moorni' ? '🔷' :
+                                     payalType === 'Silver' ? '⚪' :
+                                     payalType === 'Golden' ? '🟡' :
+                                     payalType === 'Diamond' ? '💎' : '💎'}
+                                  </span>
+                                  <strong style={{ fontSize: '16px', color: '#2c3e50' }}>
+                                    {payalType}
+                                  </strong>
+                                  <span style={{ 
+                                    fontSize: '12px', 
+                                    color: '#666', 
+                                    fontStyle: 'italic',
+                                    marginLeft: '10px'
+                                  }}>
+                                    (Prices set per vendor)
+                                  </span>
+                                </div>
+                              )}
+                            </td>
+                            <td style={{ padding: '10px', textAlign: 'center' }}>
+                              {isEditing ? (
+                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                                  <button
+                                    onClick={savePayalEdit}
+                                    style={{
+                                      padding: '8px 15px',
+                                      backgroundColor: '#10ac84',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '6px',
+                                      cursor: 'pointer',
+                                      fontSize: '12px',
+                                      fontWeight: '600'
+                                    }}
+                                    disabled={loading}
+                                  >
+                                    ✓ Save
+                                  </button>
+                                  <button
+                                    onClick={cancelEditingPayal}
+                                    style={{
+                                      padding: '8px 15px',
+                                      backgroundColor: '#95a5a6',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '6px',
+                                      cursor: 'pointer',
+                                      fontSize: '12px',
+                                      fontWeight: '600'
+                                    }}
+                                    disabled={loading}
+                                  >
+                                    ✗ Cancel
+                                  </button>
+                                </div>
+                              ) : (
+                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                                  <button
+                                    onClick={() => startEditingPayal(wireName, payalType)}
+                                    style={{
+                                      padding: '8px 15px',
+                                      backgroundColor: '#3498db',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '6px',
+                                      cursor: 'pointer',
+                                      fontSize: '12px',
+                                      fontWeight: '600'
+                                    }}
+                                    disabled={loading}
+                                  >
+                                    ✏️ Edit Name
+                                  </button>
+                                  <button
+                                    onClick={() => deletePayal(wireName, payalType)}
+                                    style={{
+                                      padding: '8px 15px',
+                                      backgroundColor: '#ee5a6f',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '6px',
+                                      cursor: 'pointer',
+                                      fontSize: '12px',
+                                      fontWeight: '600'
+                                    }}
+                                    disabled={loading}
+                                  >
+                                    🗑️ Remove
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
                     ) : (
                       <tr>
                         <td colSpan="2" style={{

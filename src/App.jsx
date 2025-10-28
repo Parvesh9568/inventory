@@ -234,14 +234,10 @@ function App() {
         const newTransaction = await apiService.addTransaction(transactionData);
 
         // Update local state
-        setInItems(prev => {
-          const newItems = [...prev, newTransaction];
-          return newItems;
-        });
+        setInItems(prev => [...prev, newTransaction]);
         setInForm({ vendor: '', item: '', payalType: '', weight: '', price: '', inDate: new Date().toISOString().split('T')[0] });
-
-        // Refresh data to update OutPanel inventory
-        await refreshTransactionData();
+        
+        // No need to refresh all data - local state is already updated
 
       } catch (error) {
         alert(`❌ ${error.message}`);
@@ -275,9 +271,8 @@ function App() {
         // Update local state
         setOutItems(prev => [...prev, newTransaction]);
         setOutForm({ vendor: '', item: '', weight: '', outDate: new Date().toISOString().split('T')[0] });
-
-        // Refresh data to update InPanel inventory
-        await refreshTransactionData();
+        
+        // No need to refresh all data - local state is already updated
 
       } catch (error) {
         alert(`❌ ${error.message}`);
@@ -320,11 +315,24 @@ function App() {
   };
 
   // Delete item from list
-  const deleteItem = async (type, index) => {
+  const deleteItem = async (type, itemIdOrIndex) => {
     const items = type === 'in' ? inItems : outItems;
-    const item = items[index];
+    
+    // Support both ID (string) and index (number) for backward compatibility
+    let item;
+    let itemId;
+    
+    if (typeof itemIdOrIndex === 'string') {
+      // It's an ID
+      item = items.find(i => i.id === itemIdOrIndex);
+      itemId = itemIdOrIndex;
+    } else {
+      // It's an index
+      item = items[itemIdOrIndex];
+      itemId = item?.id;
+    }
 
-    if (!item || !item.id) {
+    if (!item || !itemId) {
       alert('Cannot delete item: Invalid item data');
       return;
     }
@@ -338,17 +346,16 @@ function App() {
     }
 
     try {
-      await apiService.deleteTransaction(item.id);
+      await apiService.deleteTransaction(itemId);
 
-      // Update local state
+      // Update local state by filtering out the item with matching ID
       if (type === 'in') {
-        setInItems(prev => prev.filter((_, i) => i !== index));
+        setInItems(prev => prev.filter(i => i.id !== itemId));
       } else {
-        setOutItems(prev => prev.filter((_, i) => i !== index));
+        setOutItems(prev => prev.filter(i => i.id !== itemId));
       }
-
-      // Refresh data to update inventory in both panels
-      await refreshTransactionData();
+      
+      // No need to refresh all data - local state is already updated
 
     } catch (error) {
       alert(`❌ Failed to delete item: ${error.message}`);

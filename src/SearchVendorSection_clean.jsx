@@ -40,7 +40,22 @@ const SearchVendorSection = ({ inItems, outItems }) => {
     // Get all transactions for this vendor
     const vendorTransactions = [...inItems, ...outItems]
       .filter(item => item.vendor === vendorName)
-      .sort((a, b) => new Date(b.createdAt || b.timestamp) - new Date(a.createdAt || a.timestamp));
+      .sort((a, b) => {
+        // Sort by transaction date first, then by createdAt time for same-date entries
+        const transDateA = a.inDate || a.outDate || a.createdAt || a.timestamp;
+        const transDateB = b.inDate || b.outDate || b.createdAt || b.timestamp;
+        
+        const dateOnlyA = new Date(transDateA).toISOString().split('T')[0];
+        const dateOnlyB = new Date(transDateB).toISOString().split('T')[0];
+        
+        // If dates are different, sort by date
+        if (dateOnlyA !== dateOnlyB) {
+          return new Date(dateOnlyA) - new Date(dateOnlyB);
+        }
+        
+        // If dates are same, sort by createdAt time (ascending)
+        return new Date(a.createdAt || a.timestamp) - new Date(b.createdAt || b.timestamp);
+      });
 
     // Group by wire and calculate remaining weight
     const wireData = {};

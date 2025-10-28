@@ -36,18 +36,16 @@ const Sidebar = () => {
     }
   };
 
-  // Function to close sidebar when navigation item is clicked (only on mobile/tablet)
+  // Function to close sidebar when navigation item is clicked (on all screen sizes)
   const closeSidebar = () => {
-    // Check if screen is mobile or tablet (less than 1025px)
-    if (window.innerWidth < 1025) {
-      const sidebar = document.querySelector('.sidebar');
-      const mainContent = document.querySelector('.main-content');
-      if (sidebar && mainContent) {
-        sidebar.classList.remove('sidebar-open');
-        mainContent.classList.remove('sidebar-open');
-      }
-      setIsOpen(false);
+    // Close sidebar on all screen sizes when clicking a menu item
+    const sidebar = document.querySelector('.sidebar');
+    const mainContent = document.querySelector('.main-content');
+    if (sidebar && mainContent) {
+      sidebar.classList.remove('sidebar-open');
+      mainContent.classList.remove('sidebar-open');
     }
+    setIsOpen(false);
   };
 
   const menuItems = [

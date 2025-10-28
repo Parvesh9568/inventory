@@ -45,28 +45,6 @@ const OutPanel = ({
     <div className="panel">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2 style={{color: '#ee5253', margin: 0}}>🔴 OUT - Export Items</h2>
-        <button 
-          onClick={() => {
-            if (onDataUpdate) {
-              onDataUpdate();
-            }
-          }}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#ee5253',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: '600',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px'
-          }}
-        >
-          🔄 Refresh Data
-        </button>
       </div>
       <div className="form-section">
         <select 
@@ -108,12 +86,23 @@ const OutPanel = ({
           min="0"
         />
 
-        <input 
-          type="date" 
-          value={outForm.outDate || ''}
-          onChange={(e) => handleFormChange('out', 'outDate', e.target.value)}
-          title="OUT Date"
-        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+          <label style={{ fontSize: '12px', color: '#666', fontWeight: '500' }}>OUT Date:</label>
+          <input 
+            type="date" 
+            value={outForm.outDate || new Date().toISOString().split('T')[0]}
+            onChange={(e) => handleFormChange('out', 'outDate', e.target.value)}
+            title="Select OUT Date (Past or Future)"
+            style={{
+              padding: '10px',
+              borderRadius: '6px',
+              border: '1px solid #ddd',
+              fontSize: '14px',
+              backgroundColor: '#ffffff',
+              cursor: 'pointer'
+            }}
+          />
+        </div>
 
         <button className="add-btn" onClick={() => addItem('out')}>➕ Add</button>
       </div>
@@ -123,16 +112,30 @@ const OutPanel = ({
           <tr><th>Sr.No</th><th>OUT Date</th><th>Vendor</th><th>Wire</th><th>Weight (kg)</th><th>Action</th></tr>
         </thead>
         <tbody>
-          {outItems.map((item, i) => (
-            <tr key={i}>
+          {[...outItems]
+            .sort((a, b) => {
+              // Sort by outDate first, then by createdAt time for same-date entries
+              const dateOnlyA = a.outDate ? new Date(a.outDate).toISOString().split('T')[0] : '1970-01-01';
+              const dateOnlyB = b.outDate ? new Date(b.outDate).toISOString().split('T')[0] : '1970-01-01';
+              
+              // If dates are different, sort by date
+              if (dateOnlyA !== dateOnlyB) {
+                return new Date(dateOnlyA) - new Date(dateOnlyB);
+              }
+              
+              // If dates are same, sort by createdAt time (ascending)
+              return new Date(a.createdAt) - new Date(b.createdAt);
+            })
+            .map((item, i) => (
+            <tr key={item.id || i}>
               <td>{i + 1}</td>
               {/* <td>{item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB')}</td> */}
               <td>{item.outDate ? new Date(item.outDate).toLocaleDateString('en-GB') : '-'}</td>
               <td>{item.vendor}</td>
               <td>{item.item}</td>
-              <td>{item.qty}</td>
+              <td>{parseFloat(item.qty).toFixed(3)}</td>
               <td>
-                <button className="delete-btn" onClick={() => deleteItem('out', i)}>
+                <button className="delete-btn" onClick={() => deleteItem('out', item.id)}>
                   Delete
                 </button>
               </td>

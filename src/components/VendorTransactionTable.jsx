@@ -11,6 +11,7 @@ const VendorTransactionTable = () => {
   const [loading, setLoading] = useState(true);
   const [uploadingFiles, setUploadingFiles] = useState({});
   const [printedPages, setPrintedPages] = useState(new Set()); // Track which pages were printed
+  const [showWireSummary, setShowWireSummary] = useState(true); // Toggle for Wire Summary table
   const itemsPerPage = 20;
 
   // Print function - mark current page as printed in database
@@ -90,6 +91,40 @@ const VendorTransactionTable = () => {
     }
   };
 
+  // Clear print history for a specific page
+  const handleClearSpecificPage = async () => {
+    if (!selectedVendor) {
+      alert('⚠️ Please select a vendor first!');
+      return;
+    }
+    
+    const pageNumber = prompt(`Enter the page number to clear history for ${selectedVendor}:\n(Total pages: ${totalPages})`);
+    
+    if (pageNumber === null) return; // User cancelled
+    
+    const pageNum = parseInt(pageNumber);
+    if (isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
+      alert(`⚠️ Please enter a valid page number between 1 and ${totalPages}`);
+      return;
+    }
+    
+    if (window.confirm(`Clear print history for ${selectedVendor} - Page ${pageNum}?`)) {
+      try {
+        await apiService.clearPagePrintStatus(selectedVendor, pageNum);
+        
+        // Update local state
+        const pageKey = `${selectedVendor}-page-${pageNum}`;
+        const newPrintedPages = new Set(printedPages);
+        newPrintedPages.delete(pageKey);
+        setPrintedPages(newPrintedPages);
+        
+        alert(`✅ Print history cleared for Page ${pageNum}!`);
+      } catch (error) {
+        alert('❌ Failed to clear page history: ' + error.message);
+      }
+    }
+  };
+
   // Load vendors, transactions, and print statuses
   useEffect(() => {
     loadData();
@@ -133,9 +168,8 @@ const VendorTransactionTable = () => {
   const processTransactions = (allTransactions) => {
     // Create individual rows for each transaction with Sr.No
     const processedTransactions = allTransactions.map((trans, index) => {
-      // Use createdAt for sorting (actual creation time), but display inDate/outDate
-      const displayDate = trans.inDate || trans.outDate || trans.createdAt;
-      const sortDate = trans.createdAt; // Use createdAt for proper chronological order
+      // Use inDate/outDate for both display and sorting
+      const transactionDate = trans.inDate || trans.outDate || trans.createdAt;
       
       return {
         id: trans.id,
@@ -148,8 +182,8 @@ const VendorTransactionTable = () => {
         qtyIn: trans.type === 'IN' ? (trans.qty || 0) : 0,
         outIn: trans.type,
         remainingWeight: 0, // Will be calculated cumulatively
-        date: displayDate, // For display
-        sortDate: sortDate, // For sorting
+        date: transactionDate, // For display
+        sortDate: transactionDate, // For sorting - use transaction date
         type: trans.type,
         wireId: '', // Will be assigned based on FIFO
         wireIdDetails: [], // For IN transactions, track which Wire IDs were reduced
@@ -158,14 +192,22 @@ const VendorTransactionTable = () => {
       };
     });
 
-    // Sort by createdAt - ASCENDING ORDER (oldest at top, newest at bottom)
-    // Pure chronological order - jo pehle add hua wo pehle dikhega
+    // Sort by transaction date first, then by createdAt time for same-date entries
     processedTransactions.sort((a, b) => {
-      const dateA = new Date(a.sortDate).getTime();
-      const dateB = new Date(b.sortDate).getTime();
+      // Get date-only strings (YYYY-MM-DD) for comparison
+      const dateOnlyA = new Date(a.sortDate).toISOString().split('T')[0];
+      const dateOnlyB = new Date(b.sortDate).toISOString().split('T')[0];
       
-      // Sort by createdAt: oldest first (ascending)
-      return dateA - dateB; // Simple chronological order
+      // If dates are different, sort by date
+      if (dateOnlyA !== dateOnlyB) {
+        return new Date(dateOnlyA) - new Date(dateOnlyB);
+      }
+      
+      // If dates are same, sort by createdAt time (ascending)
+      // This ensures entries added later appear below earlier entries on the same date
+      const createdAtA = allTransactions.find(t => t.id === a.id)?.createdAt;
+      const createdAtB = allTransactions.find(t => t.id === b.id)?.createdAt;
+      return new Date(createdAtA) - new Date(createdAtB);
     });
 
     // Calculate cumulative balance and assign Wire IDs using FIFO
@@ -297,6 +339,15 @@ const VendorTransactionTable = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentTransactions = filteredTransactions.slice(startIndex, endIndex);
+
+  // Calculate previous page's ending balance (to show at top of current page)
+  const previousPageBalance = currentPage > 1 ? (() => {
+    const prevPageEndIndex = startIndex; // End of previous page is start of current page
+    if (prevPageEndIndex > 0 && filteredTransactions[prevPageEndIndex - 1]) {
+      return filteredTransactions[prevPageEndIndex - 1].remainingWeight;
+    }
+    return null;
+  })() : null;
 
   // Calculate totals for current page
   const pageTotals = currentTransactions.reduce((acc, trans) => {
@@ -461,13 +512,6 @@ const VendorTransactionTable = () => {
         
         <div className="vendor-transaction-controls">
           <button 
-            className="clear-history-btn"
-            onClick={handleClearPrintHistory}
-            title="Clear Print History"
-          >
-            🗑️ Clear History
-          </button>
-          <button 
             className="screenshot-btn"
             onClick={handleScreenshot}
             title="Take Screenshot"
@@ -507,14 +551,120 @@ const VendorTransactionTable = () => {
               ))}
             </select>
           </div>
+
+          {/* Clear History Button */}
+          <button
+            onClick={handleClearSpecificPage}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#ff9800',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.3s ease',
+              marginLeft: 'auto'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#f57c00';
+              e.target.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = '#ff9800';
+              e.target.style.transform = 'translateY(0)';
+            }}
+            title="Clear print history for a specific page"
+          >
+            <span>🗑️</span>
+            <span>Clear Page History</span>
+          </button>
         </div>
       </div>
+
+      {/* Toggle Button for Wire Summary - Positioned at top right */}
+      {selectedVendor && wireSummary.length > 0 && (
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'flex-end', 
+          marginBottom: '15px',
+          position: 'relative',
+          zIndex: 10
+        }}>
+          <button
+            onClick={() => setShowWireSummary(!showWireSummary)}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: showWireSummary ? '#e74c3c' : '#3498db',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.15)';
+            }}
+            title={showWireSummary ? 'Hide Wire Summary' : 'Show Wire Summary'}
+          >
+            <span>{showWireSummary ? '📊' : '📊'}</span>
+            <span>{showWireSummary ? 'Hide Summary' : 'Show Summary'}</span>
+            <span style={{ fontSize: '16px' }}>{showWireSummary ? '✕' : '→'}</span>
+          </button>
+        </div>
+      )}
 
       {/* Main content with table and summary side by side */}
       <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
         
         {/* Main Transaction Table */}
         <div className="vendor-transaction-table-wrapper" style={{ flex: 1 }}>
+        
+        {/* Previous Page Balance Display */}
+        {previousPageBalance !== null && selectedVendor && (
+          <div style={{
+            backgroundColor: '#e8f5e9',
+            border: '2px solid #4caf50',
+            borderRadius: '8px',
+            padding: '12px 20px',
+            marginBottom: '15px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '20px' }}>📊</span>
+              <span style={{ fontWeight: '600', color: '#2e7d32' }}>Previous Page Ending Balance:</span>
+            </div>
+            <div style={{
+              fontSize: '18px',
+              fontWeight: '700',
+              color: '#1b5e20',
+              backgroundColor: '#c8e6c9',
+              padding: '6px 16px',
+              borderRadius: '6px'
+            }}>
+              {previousPageBalance.toFixed(3)} kg
+            </div>
+          </div>
+        )}
+        
         <table className="vendor-transaction-table">
           <thead>
             <tr>
@@ -552,16 +702,16 @@ const VendorTransactionTable = () => {
                   <td className={trans.labourCharges > 0 ? 'highlight-yellow' : ''}>
                     {trans.labourCharges > 0 ? `₹${trans.labourCharges.toFixed(0)}` : ''}
                   </td>
-                  <td>{trans.qtyOut > 0 ? trans.qtyOut.toFixed(0) : ''}</td>
-                  <td>{trans.qtyIn > 0 ? trans.qtyIn.toFixed(0) : ''}</td>
+                  <td>{trans.qtyOut > 0 ? trans.qtyOut.toFixed(3) : ''}</td>
+                  <td>{trans.qtyIn > 0 ? trans.qtyIn.toFixed(3) : ''}</td>
                   <td>{trans.outIn === 'OUT' ? 'Out' : 'In'}</td>
-                  <td>{trans.remainingWeight.toFixed(0)}</td>
+                  <td>{trans.remainingWeight.toFixed(3)}</td>
                 </tr>
               );
             })}
 
-            {/* Summary rows for each vendor - Only show when specific vendor is selected and NO wire filter */}
-            {selectedVendor && !wireFilter && Object.values(pageTotals).map((vendorTotal, idx) => {
+            {/* Summary rows for each vendor - Only show when specific vendor is selected and NO wire filter AND exactly 20 entries on page */}
+            {selectedVendor && !wireFilter && currentTransactions.length === 20 && Object.values(pageTotals).map((vendorTotal, idx) => {
               // Check if THIS specific page was printed
               const pageKey = `${vendorTotal.vendor}-page-${currentPage}`;
               const isPagePrinted = printedPages.has(pageKey);
@@ -594,7 +744,7 @@ const VendorTransactionTable = () => {
                     )}
                   </td>
                   <td>
-                    <strong>{vendorTotal.finalRemainingWeight.toFixed(0)}</strong>
+                    <strong>{vendorTotal.finalRemainingWeight.toFixed(3)}</strong>
                   </td>
                 </tr>
               );
@@ -605,7 +755,7 @@ const VendorTransactionTable = () => {
         {/* End Main Transaction Table */}
 
         {/* Wire Summary Table - Right Side */}
-        {selectedVendor && wireSummary.length > 0 && (
+        {selectedVendor && wireSummary.length > 0 && showWireSummary && (
           <div className="wire-summary-panel" style={{
             minWidth: '350px',
             maxWidth: '400px',
@@ -654,7 +804,7 @@ const VendorTransactionTable = () => {
                         {item.wire}
                       </td>
                       <td style={{ padding: '6px 4px', textAlign: 'right', fontWeight: '600', color: '#e74c3c' }}>
-                        {item.remainingQty.toFixed(0)}
+                        {item.remainingQty.toFixed(3)}
                       </td>
                       <td style={{ padding: '6px 4px', textAlign: 'right', fontWeight: '600', color: item.days > 30 ? '#e74c3c' : '#27ae60' }}>
                         {item.days}

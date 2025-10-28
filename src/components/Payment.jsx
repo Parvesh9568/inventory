@@ -427,7 +427,7 @@ const Payment = () => {
                       <td>
                         {Object.keys(payalTotals).join(', ')}
                       </td>
-                      <td><strong>{wireTotalWeight.toFixed(2)} kg</strong></td>
+                      <td><strong>{wireTotalWeight.toFixed(3)} kg</strong></td>
                       <td><strong>₹{wireTotalPayable.toFixed(2)}</strong></td>
                     </tr>
                   );

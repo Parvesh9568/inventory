@@ -82,28 +82,6 @@ const InPanel = ({
     <div className="panel">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2 style={{color: '#10ac84', margin: 0}}>🟢 IN - Import Items</h2>
-        <button 
-          onClick={() => {
-            if (onDataUpdate) {
-              onDataUpdate();
-            }
-          }}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#10ac84',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: '600',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px'
-          }}
-        >
-          🔄 Refresh Data
-        </button>
       </div>
       
       
@@ -170,12 +148,23 @@ const InPanel = ({
           min="0"
         />
 
-        <input 
-          type="date" 
-          value={inForm.inDate || ''}
-          onChange={(e) => handleFormChange('in', 'inDate', e.target.value)}
-          title="IN Date"
-        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+          <label style={{ fontSize: '12px', color: '#666', fontWeight: '500' }}>IN Date:</label>
+          <input 
+            type="date" 
+            value={inForm.inDate || new Date().toISOString().split('T')[0]}
+            onChange={(e) => handleFormChange('in', 'inDate', e.target.value)}
+            title="Select IN Date (Past or Future)"
+            style={{
+              padding: '10px',
+              borderRadius: '6px',
+              border: '1px solid #ddd',
+              fontSize: '14px',
+              backgroundColor: '#ffffff',
+              cursor: 'pointer'
+            }}
+          />
+        </div>
 
         <input 
           type="number" 
@@ -261,15 +250,23 @@ const InPanel = ({
               <span>✅</span>
               <strong>Available Wire Assignments for {inForm.vendor}</strong>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ 
+              display: 'flex', 
+              flexWrap: 'nowrap', 
+              gap: '8px', 
+              overflowX: 'auto',
+              paddingBottom: '8px'
+            }}>
               {selectedVendorObj.assignedWires.map((wire, index) => (
                 <div key={index} style={{
-                  padding: '4px 8px',
+                  padding: '8px 12px',
                   backgroundColor: '#ffffff',
                   border: '1px solid #28a745',
                   borderRadius: '6px',
                   fontSize: '12px',
-                  fontWeight: '600'
+                  fontWeight: '600',
+                  whiteSpace: 'nowrap',
+                  minWidth: 'fit-content'
                 }}>
                   <span style={{ color: '#667eea' }}>{wire.wireName}</span>
                   <span style={{ margin: '0 4px', opacity: 0.6 }}>•</span>
@@ -306,7 +303,7 @@ const InPanel = ({
             const availableWeight = availableItem ? (availableItem.totalOut - availableItem.totalIn) : 0;
             return (
               <p className="available-qty" style={{backgroundColor: '#d4edda', padding: '10px', borderRadius: '6px'}}>
-                📦 Available for import: <strong>{availableWeight} kg</strong> of {inForm.item} from {inForm.vendor}
+                📦 Available for import: <strong>{availableWeight.toFixed(3)} kg</strong> of {inForm.item} from {inForm.vendor}
               </p>
             );
           })()}
@@ -332,9 +329,9 @@ const InPanel = ({
                 <tr key={i}>
                   <td>{item.vendor}</td>
                   <td>{item.item}</td>
-                  <td>{item.totalOut}</td>
-                  <td>{item.totalIn}</td>
-                  <td className="available-cell">{item.totalOut - item.totalIn}</td>
+                  <td>{parseFloat(item.totalOut).toFixed(3)}</td>
+                  <td>{parseFloat(item.totalIn).toFixed(3)}</td>
+                  <td className="available-cell">{(item.totalOut - item.totalIn).toFixed(3)}</td>
                 </tr>
               ))}
             </tbody>
@@ -347,8 +344,22 @@ const InPanel = ({
           <tr><th>Sr.No</th><th>IN Date</th><th>Vendor</th><th>Wire</th><th>Payal Type 💎</th><th>Weight (kg)</th><th>Vendor Payable</th><th>Action</th></tr>
         </thead>
         <tbody>
-          {inItems.map((item, i) => (
-            <tr key={i}>
+          {[...inItems]
+            .sort((a, b) => {
+              // Sort by inDate first, then by createdAt time for same-date entries
+              const dateOnlyA = a.inDate ? new Date(a.inDate).toISOString().split('T')[0] : '1970-01-01';
+              const dateOnlyB = b.inDate ? new Date(b.inDate).toISOString().split('T')[0] : '1970-01-01';
+              
+              // If dates are different, sort by date
+              if (dateOnlyA !== dateOnlyB) {
+                return new Date(dateOnlyA) - new Date(dateOnlyB);
+              }
+              
+              // If dates are same, sort by createdAt time (ascending)
+              return new Date(a.createdAt) - new Date(b.createdAt);
+            })
+            .map((item, i) => (
+            <tr key={item.id || i}>
               <td>{i + 1}</td>
               {/* <td>{item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB')}</td> */}
               <td>{item.inDate ? new Date(item.inDate).toLocaleDateString('en-GB') : '-'}</td>
@@ -371,13 +382,13 @@ const InPanel = ({
                    item.payalType === 'Diamond' ? '💎' : ''} {item.payalType}
                 </span>
               </td>
-              <td>{item.qty}</td>
+              <td>{parseFloat(item.qty).toFixed(3)}</td>
               <td>₹{item.price ? item.price.toFixed(2) : item.total.toFixed(2)}</td>
               <td>
                 <button 
                   className="delete-btn" 
                   onClick={async () => {
-                    await deleteItem('in', i);
+                    await deleteItem('in', item.id);
                     // Refresh data after deleting item to update inventory
                     if (onDataUpdate) {
                       await onDataUpdate();

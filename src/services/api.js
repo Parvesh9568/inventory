@@ -1,7 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://inventory-management-xqt1.vercel.app' ;
-// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://inventory-management-xqt1.vercel.app' || 'http://localhost:4003;
-// const API_BASE_URL = import.meta.env.VITE_BACKEND_URL
-
+// const API_BASE_URL = 'http://localhost:4003/api';
 class ApiService {
   async request(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
@@ -281,6 +279,12 @@ class ApiService {
 
   async clearVendorPrintStatuses(vendorName) {
     return this.request(`/print-status/clear/vendor/${encodeURIComponent(vendorName)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async clearPagePrintStatus(vendorName, pageNumber) {
+    return this.request(`/print-status/${encodeURIComponent(vendorName)}/${pageNumber}`, {
       method: 'DELETE',
     });
   }

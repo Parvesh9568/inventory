@@ -16,7 +16,7 @@ const Dashboard = ({ inItems, outItems }) => {
       <div className="summary-cards">
         <div className="summary-card in-card">
           <h3>📥 Total IN Weight</h3>
-          <p className="amount">{totalInWeight.toFixed(2)} kg</p>
+          <p className="amount">{totalInWeight.toFixed(3)} kg</p>
           {/* <span className="count">{inItems.length} transactions</span>
           <small style={{ display: 'block', marginTop: '8px', color: '#666' }}>
             Amount: ₹{totalInAmount.toFixed(2)}
@@ -25,7 +25,7 @@ const Dashboard = ({ inItems, outItems }) => {
         
         <div className="summary-card out-card">
           <h3>📤 Total OUT Weight</h3>
-          <p className="amount">{totalOutWeight.toFixed(2)} kg</p>
+          <p className="amount">{totalOutWeight.toFixed(3)} kg</p>
           {/* <span className="count">{outItems.length} transactions</span>
           <small style={{ display: 'block', marginTop: '8px', color: '#666' }}>
             Amount: ₹{totalOutAmount.toFixed(2)}
@@ -34,7 +34,7 @@ const Dashboard = ({ inItems, outItems }) => {
         
         <div className="summary-card final-card">
           <h3>⚖️ Net Total Weight</h3>
-          <p className="amount">{netWeight.toFixed(2)} kg</p>
+          <p className="amount">{netWeight.toFixed(3)} kg</p>
           <span className="status">{netWeight >= 0 ? 'Available' : 'Deficit'}</span>
           <small style={{ display: 'block', marginTop: '8px', color: '#666' }}>
             Remaining inventory
@@ -66,7 +66,7 @@ const Dashboard = ({ inItems, outItems }) => {
                   </td>
                   <td>{item.vendor}</td>
                   <td>{item.item}</td>
-                  <td>{item.qty}</td>
+                  <td>{parseFloat(item.qty).toFixed(3)}</td>
                   <td>₹{item.total.toFixed(2)}</td>
                 </tr>
               ))}
