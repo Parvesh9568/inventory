@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://inventory-management-xqt1.vercel.app' ;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://inventory-management-xqt1.vercel.app';
 // const API_BASE_URL = 'http://localhost:4003/api';
 class ApiService {
   async request(endpoint, options = {}) {
@@ -61,6 +61,13 @@ class ApiService {
     return this.request('/vendors', {
       method: 'POST',
       body: JSON.stringify({ name, phone, address, assignedWires }),
+    });
+  }
+
+  async updateVendor(vendorId, name, phone, address) {
+    return this.request(`/vendors/${vendorId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ name, phone, address }),
     });
   }
 

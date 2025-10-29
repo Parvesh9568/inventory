@@ -8,6 +8,37 @@ const Dashboard = ({ inItems, outItems }) => {
   const totalInAmount = inItems.reduce((sum, item) => sum + (item.total || 0), 0);
   const totalOutAmount = outItems.reduce((sum, item) => sum + (item.total || 0), 0);
 
+  // Calculate per-vendor transaction totals
+  const vendorTotals = {};
+  
+  // Process IN transactions
+  inItems.forEach(item => {
+    const vendor = item.vendor || 'Unknown';
+    if (!vendorTotals[vendor]) {
+      vendorTotals[vendor] = { vendor, totalIn: 0, totalOut: 0, balance: 0 };
+    }
+    vendorTotals[vendor].totalIn += (item.qty || 0);
+  });
+
+  // Process OUT transactions
+  outItems.forEach(item => {
+    const vendor = item.vendor || 'Unknown';
+    if (!vendorTotals[vendor]) {
+      vendorTotals[vendor] = { vendor, totalIn: 0, totalOut: 0, balance: 0 };
+    }
+    vendorTotals[vendor].totalOut += (item.qty || 0);
+  });
+
+  // Calculate balance for each vendor
+  Object.values(vendorTotals).forEach(vendor => {
+    vendor.balance = vendor.totalOut - vendor.totalIn;
+  });
+
+  // Convert to array and sort by vendor name
+  const vendorTotalsArray = Object.values(vendorTotals).sort((a, b) => 
+    a.vendor.localeCompare(b.vendor)
+  );
+
   return (
     <div className="dashboard">
       <h2>📊 Dashboard Overview</h2>
@@ -17,19 +48,11 @@ const Dashboard = ({ inItems, outItems }) => {
         <div className="summary-card in-card">
           <h3>📥 Total IN Weight</h3>
           <p className="amount">{totalInWeight.toFixed(3)} kg</p>
-          {/* <span className="count">{inItems.length} transactions</span>
-          <small style={{ display: 'block', marginTop: '8px', color: '#666' }}>
-            Amount: ₹{totalInAmount.toFixed(2)}
-          </small> */}
         </div>
         
         <div className="summary-card out-card">
           <h3>📤 Total OUT Weight</h3>
           <p className="amount">{totalOutWeight.toFixed(3)} kg</p>
-          {/* <span className="count">{outItems.length} transactions</span>
-          <small style={{ display: 'block', marginTop: '8px', color: '#666' }}>
-            Amount: ₹{totalOutAmount.toFixed(2)}
-          </small> */}
         </div>
         
         <div className="summary-card final-card">
@@ -42,40 +65,69 @@ const Dashboard = ({ inItems, outItems }) => {
         </div>
       </div>
 
-      {/* Recent Activity */}
-      {/* <div className="recent-activity">
-        <h3>📈 Recent Activity</h3>
-        {recentItems.length > 0 ? (
-          <table className="recent-table">
+      {/* Per-Vendor Transaction Totals Table */}
+      <div className="recent-activity" style={{ marginTop: '30px' }}>
+        <h3>👥 Vendor-wise Transaction Summary</h3>
+        {vendorTotalsArray.length > 0 ? (
+          <table className="recent-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr>
-                <th>Type</th>
-                <th>Vendor</th>
-                <th>Item</th>
-                <th>Qty</th>
-                <th>Total</th>
+              <tr style={{ backgroundColor: '#667eea', color: 'white' }}>
+                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Vendor</th>
+                <th style={{ padding: '12px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>Total IN (kg)</th>
+                <th style={{ padding: '12px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>Total OUT (kg)</th>
+                <th style={{ padding: '12px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>Balance (kg)</th>
               </tr>
             </thead>
             <tbody>
-              {recentItems.map((item, i) => (
-                <tr key={i}>
-                  <td>
-                    <span className={`type-badge ${item.type.toLowerCase()}`}>
-                      {item.type}
-                    </span>
+              {vendorTotalsArray.map((vendor, i) => (
+                <tr key={i} style={{ 
+                  backgroundColor: i % 2 === 0 ? '#f8f9fa' : 'white',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e8f4f8'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = i % 2 === 0 ? '#f8f9fa' : 'white'}
+                >
+                  <td style={{ padding: '12px', borderBottom: '1px solid #ddd', fontWeight: '600', color: '#2c3e50' }}>
+                    {vendor.vendor}
                   </td>
-                  <td>{item.vendor}</td>
-                  <td>{item.item}</td>
-                  <td>{parseFloat(item.qty).toFixed(3)}</td>
-                  <td>₹{item.total.toFixed(2)}</td>
+                  <td style={{ padding: '12px', textAlign: 'right', borderBottom: '1px solid #ddd', color: '#27ae60', fontWeight: '500' }}>
+                    {vendor.totalIn.toFixed(3)}
+                  </td>
+                  <td style={{ padding: '12px', textAlign: 'right', borderBottom: '1px solid #ddd', color: '#e74c3c', fontWeight: '500' }}>
+                    {vendor.totalOut.toFixed(3)}
+                  </td>
+                  <td style={{ 
+                    padding: '12px', 
+                    textAlign: 'right', 
+                    borderBottom: '1px solid #ddd',
+                    fontWeight: '700',
+                    color: vendor.balance >= 0 ? '#27ae60' : '#e74c3c'
+                  }}>
+                    {vendor.balance.toFixed(3)}
+                  </td>
                 </tr>
               ))}
+              {/* Total Row */}
+              <tr style={{ backgroundColor: '#667eea', color: 'white', fontWeight: '700' }}>
+                <td style={{ padding: '12px', borderTop: '2px solid #2c3e50' }}>
+                  TOTAL
+                </td>
+                <td style={{ padding: '12px', textAlign: 'right', borderTop: '2px solid #2c3e50' }}>
+                  {totalInWeight.toFixed(3)}
+                </td>
+                <td style={{ padding: '12px', textAlign: 'right', borderTop: '2px solid #2c3e50' }}>
+                  {totalOutWeight.toFixed(3)}
+                </td>
+                <td style={{ padding: '12px', textAlign: 'right', borderTop: '2px solid #2c3e50' }}>
+                  {netWeight.toFixed(3)}
+                </td>
+              </tr>
             </tbody>
           </table>
         ) : (
-          <p className="no-data">No recent activity found.</p>
+          <p className="no-data">No vendor data available.</p>
         )}
-    </div> */}
+      </div>
      </div>
   );
 };

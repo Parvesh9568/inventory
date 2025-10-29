@@ -7,6 +7,7 @@ const VendorTransactionTable = () => {
   const [vendors, setVendors] = useState([]);
   const [selectedVendor, setSelectedVendor] = useState('');
   const [wireFilter, setWireFilter] = useState('');
+  const [dateFilter, setDateFilter] = useState(''); // Date filter state
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [uploadingFiles, setUploadingFiles] = useState({});
@@ -330,6 +331,14 @@ const VendorTransactionTable = () => {
       });
     }
 
+    // Apply date filter
+    if (dateFilter) {
+      filtered = filtered.filter(t => {
+        const transactionDate = new Date(t.date).toISOString().split('T')[0];
+        return transactionDate === dateFilter;
+      });
+    }
+
     return filtered;
   };
 
@@ -550,6 +559,42 @@ const VendorTransactionTable = () => {
                 <option key={idx} value={wire}>{wire}</option>
               ))}
             </select>
+          </div>
+
+          <div className="vendor-select-wrapper">
+            <label>Filter by Date:</label>
+            <input 
+              type="date" 
+              value={dateFilter} 
+              onChange={(e) => {
+                setDateFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="vendor-select"
+              style={{ padding: '8px 12px' }}
+            />
+            {dateFilter && (
+              <button
+                onClick={() => {
+                  setDateFilter('');
+                  setCurrentPage(1);
+                }}
+                style={{
+                  marginLeft: '8px',
+                  padding: '8px 12px',
+                  backgroundColor: '#e74c3c',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: '600'
+                }}
+                title="Clear date filter"
+              >
+                ✕ Clear
+              </button>
+            )}
           </div>
 
           {/* Clear History Button */}

@@ -23,6 +23,14 @@ const VendorManagement = ({ onDataUpdate }) => {
   const wireSelectRef = useRef(null);
   const priceInputRef = useRef(null);
 
+  // Vendor Edit states
+  const [editingVendor, setEditingVendor] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    phone: '',
+    address: ''
+  });
+
   useEffect(() => {
     loadVendors();
     loadWiresAndPrices();
@@ -172,6 +180,54 @@ const VendorManagement = ({ onDataUpdate }) => {
         text: '❌ Removal cancelled. You must type "yes" exactly to confirm.', 
         type: 'error' 
       });
+    }
+  };
+
+  // Vendor Edit Functions
+  const startEditingVendor = (vendor) => {
+    setEditingVendor(vendor);
+    setEditForm({
+      name: vendor.name,
+      phone: vendor.phone || '',
+      address: vendor.address || ''
+    });
+  };
+
+  const cancelEditVendor = () => {
+    setEditingVendor(null);
+    setEditForm({ name: '', phone: '', address: '' });
+  };
+
+  const handleEditFormChange = (field, value) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const saveVendorEdit = async () => {
+    if (!editForm.name.trim()) {
+      setMessage({ text: '⚠️ Vendor name is required', type: 'error' });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await apiService.updateVendor(
+        editingVendor._id,
+        editForm.name,
+        editForm.phone,
+        editForm.address
+      );
+      
+      setMessage({ text: `✅ Vendor "${editForm.name}" updated successfully!`, type: 'success' });
+      cancelEditVendor();
+      
+      await loadVendors();
+      if (onDataUpdate) {
+        onDataUpdate();
+      }
+    } catch (error) {
+      setMessage({ text: `❌ Failed to update vendor: ${error.message}`, type: 'error' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -746,6 +802,34 @@ const VendorManagement = ({ onDataUpdate }) => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          startEditingVendor(vendor);
+                        }}
+                        style={{
+                          padding: '8px 12px',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          backgroundColor: '#3498db',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease'
+                        }}
+                        disabled={loading}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#2980b9';
+                          e.target.style.transform = 'scale(1.05)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = '#3498db';
+                          e.target.style.transform = 'scale(1)';
+                        }}
+                      >
+                        ✏️ Edit
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
                           deleteVendor(vendor);
                         }}
                         style={{
@@ -790,6 +874,161 @@ const VendorManagement = ({ onDataUpdate }) => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Edit Vendor Modal */}
+      {editingVendor && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '15px',
+            width: '500px',
+            maxWidth: '90vw',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+          }}>
+            <h3 style={{
+              margin: '0 0 20px 0',
+              color: '#2c3e50',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}>
+              <span>✏️</span>
+              Edit Vendor: {editingVendor.name}
+            </h3>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#2c3e50'
+              }}>
+                Vendor Name <span style={{color: '#e74c3c'}}>*</span>
+              </label>
+              <input
+                type="text"
+                value={editForm.name}
+                onChange={(e) => handleEditFormChange('name', e.target.value)}
+                placeholder="Enter vendor name"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '14px',
+                  border: '2px solid #e1e8ed',
+                  borderRadius: '8px',
+                  outline: 'none'
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#2c3e50'
+              }}>
+                📱 Phone Number
+              </label>
+              <input
+                type="tel"
+                value={editForm.phone}
+                onChange={(e) => handleEditFormChange('phone', e.target.value)}
+                placeholder="Enter phone number"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '14px',
+                  border: '2px solid #e1e8ed',
+                  borderRadius: '8px',
+                  outline: 'none'
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '30px' }}>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#2c3e50'
+              }}>
+                📍 Address
+              </label>
+              <textarea
+                value={editForm.address}
+                onChange={(e) => handleEditFormChange('address', e.target.value)}
+                placeholder="Enter vendor address"
+                rows="3"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '14px',
+                  border: '2px solid #e1e8ed',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  fontFamily: 'inherit',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+
+            <div style={{
+              display: 'flex',
+              gap: '10px',
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                onClick={cancelEditVendor}
+                style={{
+                  padding: '12px 20px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  backgroundColor: '#95a5a6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveVendorEdit}
+                disabled={loading || !editForm.name.trim()}
+                style={{
+                  padding: '12px 20px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  backgroundColor: editForm.name.trim() ? '#3498db' : '#95a5a6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: editForm.name.trim() ? 'pointer' : 'not-allowed'
+                }}
+              >
+                {loading ? '⏳ Saving...' : '✅ Save Changes'}
+              </button>
+            </div>
           </div>
         </div>
       )}
