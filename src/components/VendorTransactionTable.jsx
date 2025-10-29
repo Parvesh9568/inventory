@@ -7,7 +7,8 @@ const VendorTransactionTable = () => {
   const [vendors, setVendors] = useState([]);
   const [selectedVendor, setSelectedVendor] = useState('');
   const [wireFilter, setWireFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState(''); // Date filter state
+  const [fromDate, setFromDate] = useState(''); // From Date filter state
+  const [toDate, setToDate] = useState(''); // To Date filter state
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [uploadingFiles, setUploadingFiles] = useState({});
@@ -331,11 +332,23 @@ const VendorTransactionTable = () => {
       });
     }
 
-    // Apply date filter
-    if (dateFilter) {
+    // Apply date range filter
+    if (fromDate || toDate) {
       filtered = filtered.filter(t => {
         const transactionDate = new Date(t.date).toISOString().split('T')[0];
-        return transactionDate === dateFilter;
+        
+        // If only fromDate is set, filter transactions from that date onwards
+        if (fromDate && !toDate) {
+          return transactionDate >= fromDate;
+        }
+        
+        // If only toDate is set, filter transactions up to that date
+        if (!fromDate && toDate) {
+          return transactionDate <= toDate;
+        }
+        
+        // If both are set, filter transactions within the range
+        return transactionDate >= fromDate && transactionDate <= toDate;
       });
     }
 
@@ -562,21 +575,36 @@ const VendorTransactionTable = () => {
           </div>
 
           <div className="vendor-select-wrapper">
-            <label>Filter by Date:</label>
+            <label>From Date:</label>
             <input 
               type="date" 
-              value={dateFilter} 
+              value={fromDate} 
               onChange={(e) => {
-                setDateFilter(e.target.value);
+                setFromDate(e.target.value);
                 setCurrentPage(1);
               }}
               className="vendor-select"
               style={{ padding: '8px 12px' }}
             />
-            {dateFilter && (
+          </div>
+
+          <div className="vendor-select-wrapper">
+            <label>To Date:</label>
+            <input 
+              type="date" 
+              value={toDate} 
+              onChange={(e) => {
+                setToDate(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="vendor-select"
+              style={{ padding: '8px 12px' }}
+            />
+            {(fromDate || toDate) && (
               <button
                 onClick={() => {
-                  setDateFilter('');
+                  setFromDate('');
+                  setToDate('');
                   setCurrentPage(1);
                 }}
                 style={{
@@ -590,7 +618,7 @@ const VendorTransactionTable = () => {
                   fontSize: '12px',
                   fontWeight: '600'
                 }}
-                title="Clear date filter"
+                title="Clear date filters"
               >
                 ✕ Clear
               </button>
@@ -715,6 +743,7 @@ const VendorTransactionTable = () => {
             <tr>
               <th>Sr. No</th>
               <th>Date</th>
+              {!selectedVendor && <th>Name</th>}
               <th>Wire Items</th>
               <th>Design</th>
               <th>Wire ID</th>
@@ -739,6 +768,7 @@ const VendorTransactionTable = () => {
                 <tr key={index} style={getRowStyle()}>
                   <td>{startIndex + index + 1}</td>
                   <td>{new Date(trans.date).toLocaleDateString('en-GB')}</td>
+                  {!selectedVendor && <td style={{ fontWeight: '600', color: '#2c3e50' }}>{trans.vendor}</td>}
                   <td>{trans.wire}</td>
                   <td>{trans.design}</td>
                   <td style={{ fontSize: '11px', fontWeight: '600' }}>
@@ -754,6 +784,40 @@ const VendorTransactionTable = () => {
                 </tr>
               );
             })}
+
+            {/* Total row - Show when all vendors are displayed (no vendor selected) */}
+            {!selectedVendor && currentTransactions.length > 0 && (() => {
+              const totalOut = currentTransactions.reduce((sum, trans) => sum + trans.qtyOut, 0);
+              const totalIn = currentTransactions.reduce((sum, trans) => sum + trans.qtyIn, 0);
+              const remainingBalance = totalOut - totalIn;
+              
+              return (
+                <tr style={{ 
+                  backgroundColor: '#f0f8ff', 
+                  borderTop: '3px solid #3498db',
+                  fontWeight: '700'
+                }}>
+                  <td colSpan="2" style={{ textAlign: 'right', padding: '12px', fontSize: '14px' }}>
+                    <strong>TOTAL:</strong>
+                  </td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td style={{ fontSize: '14px', color: '#e74c3c', fontWeight: '700' }}>
+                    {totalOut.toFixed(3)}
+                  </td>
+                  <td style={{ fontSize: '14px', color: '#27ae60', fontWeight: '700' }}>
+                    {totalIn.toFixed(3)}
+                  </td>
+                  <td></td>
+                  <td style={{ fontSize: '14px', color: '#2c3e50', fontWeight: '700' }}>
+                    {remainingBalance.toFixed(3)}
+                  </td>
+                </tr>
+              );
+            })()}
 
             {/* Summary rows for each vendor - Only show when specific vendor is selected and NO wire filter AND exactly 20 entries on page */}
             {selectedVendor && !wireFilter && currentTransactions.length === 20 && Object.values(pageTotals).map((vendorTotal, idx) => {

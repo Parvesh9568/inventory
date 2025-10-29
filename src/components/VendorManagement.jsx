@@ -165,12 +165,30 @@ const VendorManagement = ({ onDataUpdate }) => {
     if (userInput === 'yes') {
       try {
         setLoading(true);
-        await apiService.removeWireFromVendor(vendor._id, assignmentId);
+        setMessage({ text: '', type: '' }); // Clear any previous messages
+        
+        console.log('Removing wire assignment:', { vendorId: vendor._id, assignmentId });
+        
+        const result = await apiService.removeWireFromVendor(vendor._id, assignmentId);
+        
+        console.log('Wire removed successfully:', result);
         
         setMessage({ text: `✅ Wire assignment removed from ${vendor.name}`, type: 'success' });
         
+        // Refresh vendor list to show updated data
         await loadVendors();
+        
+        // Call parent callback if provided
+        if (onDataUpdate) {
+          onDataUpdate();
+        }
+        
+        // Auto-clear success message after 3 seconds
+        setTimeout(() => {
+          setMessage({ text: '', type: '' });
+        }, 3000);
       } catch (error) {
+        console.error('Error removing wire assignment:', error);
         setMessage({ text: `❌ Error removing wire assignment: ${error.message}`, type: 'error' });
       } finally {
         setLoading(false);
